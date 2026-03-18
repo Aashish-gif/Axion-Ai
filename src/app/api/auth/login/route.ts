@@ -26,6 +26,13 @@ export async function POST(request: Request) {
     }
 
     // Compare passwords
+    if (!user.password) {
+      return NextResponse.json(
+        { error: "Please sign in with Google for this account" },
+        { status: 401 }
+      );
+    }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return NextResponse.json(
@@ -36,7 +43,7 @@ export async function POST(request: Request) {
 
     // Sign JWT
     const token = jwt.sign(
-      { userId: user._id, email: user.email, name: user.name },
+      { userId: user._id.toString(), email: user.email, name: user.name },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
@@ -57,7 +64,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error: unknown) {
-    console.error("Login error:", error);
+    console.error("Login error details:", error instanceof Error ? error.message : error);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }
