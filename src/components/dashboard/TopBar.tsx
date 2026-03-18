@@ -39,13 +39,17 @@ export function TopBar() {
                     <input 
                         type="text" 
                         placeholder="Search videos, ideas, or comments..."
+                        suppressHydrationWarning
                         className="w-full pl-11 pr-4 py-2.5 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                     />
                 </div>
             </div>
 
             <div className="flex items-center justify-end w-full md:w-auto gap-4">
-                <button className="hidden sm:flex w-11 h-11 bg-white border-[3px] border-dark-border rounded-xl shadow-[4px_5px_0_#111827] items-center justify-center transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-0 active:translate-y-0 active:shadow-none hover:text-accent-red">
+                <button 
+                    suppressHydrationWarning
+                    className="hidden sm:flex w-11 h-11 bg-white border-[3px] border-dark-border rounded-xl shadow-[4px_5px_0_#111827] items-center justify-center transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-0 active:translate-y-0 active:shadow-none hover:text-accent-red"
+                >
                     <Bell size={20} />
                 </button>
                 <ChannelSwitcher />
@@ -53,6 +57,7 @@ export function TopBar() {
                 <div className="relative">
                     <button 
                         onClick={() => setShowProfile(!showProfile)}
+                        suppressHydrationWarning
                         className="w-11 h-11 rounded-xl bg-accent-red border-[3px] border-dark-border shadow-[4px_5px_0_#111827] flex items-center justify-center overflow-hidden transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-0 active:translate-y-0 active:shadow-none"
                     >
                         <span className="font-heading font-black text-white text-sm">{initials}</span>
