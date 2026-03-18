@@ -1,23 +1,56 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { use } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { mockVideos } from "@/lib/mockData";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Loader2, AlertCircle } from "lucide-react";
+
+interface VideoReport {
+    id: string;
+    title: string;
+    commentCount: number;
+    sentimentScore: number;
+    emoji: string;
+    gradientFrom: string;
+    gradientTo: string;
+    goodPoints: string[];
+    improvPoints: string[];
+    flagPoints: string[];
+    questions: string[];
+    nextVideoIdea: string;
+}
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
-    const video = mockVideos.find((v) => v.id === resolvedParams.id) || mockVideos[0];
+    const [video, setVideo] = useState<VideoReport | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        async function fetchReport() {
+            try {
+                const res = await fetch(`/api/youtube/report/${resolvedParams.id}`);
+                if (!res.ok) throw new Error("Failed to load report");
+                const data = await res.json();
+                setVideo(data);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchReport();
+    }, [resolvedParams.id]);
 
     const handleDownloadPDF = async () => {
         const html2canvas = (await import("html2canvas")).default;
         const jsPDF = (await import("jspdf")).default;
 
         const element = document.getElementById("report-content");
-        if (!element) return;
+        if (!element || !video) return;
 
         const canvas = await html2canvas(element, { scale: 2 });
         const imgData = canvas.toDataURL("image/png");
@@ -28,6 +61,28 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
         pdf.save(`${video.title}-report.pdf`);
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <Loader2 size={48} className="animate-spin text-accent-red mb-4" />
+                <p className="font-heading font-bold text-dark-border">Generating your deep dive report...</p>
+            </div>
+        );
+    }
+
+    if (error || !video) {
+        return (
+            <div className="p-8 text-center bg-red-50 border-[3px] border-red-200 rounded-3xl">
+                <AlertCircle size={48} className="mx-auto text-red-600 mb-4" />
+                <h2 className="font-heading font-black text-2xl text-red-600 mb-2">Report Unavailable</h2>
+                <p className="text-red-500 font-bold mb-6">{error || "We couldn't find the data for this video."}</p>
+                <Link href="/dashboard">
+                    <Button variant="primary">Back to Dashboard</Button>
+                </Link>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in duration-500 pb-10">
@@ -147,7 +202,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     <Card bg="mint" className="p-6">
                         <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">✅ The Good</h3>
                         <ul className="space-y-3">
-                            {video.goodPoints.map((pt, i) => (
+                            {video.goodPoints.map((pt: string, i: number) => (
                                 <li key={i} className="flex items-start gap-2 font-medium">
                                     <div className="w-2 h-2 rounded-full bg-green-500 mt-2 shrink-0 border border-dark-border"></div>
                                     {pt}
@@ -158,7 +213,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     <Card bg="yellow" className="p-6">
                         <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">🔧 Constructive Criticism</h3>
                         <ul className="space-y-3">
-                            {video.improvPoints.map((pt, i) => (
+                            {video.improvPoints.map((pt: string, i: number) => (
                                 <li key={i} className="flex items-start gap-2 font-medium">
                                     <div className="w-2 h-2 rounded-full bg-yellow-500 mt-2 shrink-0 border border-dark-border"></div>
                                     {pt}
@@ -170,7 +225,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                         <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">🚩 Red Flags</h3>
                         <ul className="space-y-3">
                             {video.flagPoints.length > 0 ? (
-                                video.flagPoints.map((pt, i) => (
+                                video.flagPoints.map((pt: string, i: number) => (
                                     <li key={i} className="flex items-start gap-2 font-medium">
                                         <div className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0 border border-dark-border"></div>
                                         {pt}
@@ -187,7 +242,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 <div className="mb-10">
                     <h2 className="font-heading font-black text-2xl mb-6">Question Bank</h2>
                     <div className="max-h-[320px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                        {video.questions.map((q, i) => (
+                        {video.questions.map((q: string, i: number) => (
                             <Card key={i} bg="white" className="p-5 flex items-start gap-4">
                                 <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center border-2 border-dark-border shrink-0 text-xl shadow-[2px_2px_0_#111827]">
                                     ❓
