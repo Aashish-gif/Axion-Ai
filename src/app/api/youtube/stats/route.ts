@@ -20,7 +20,7 @@ export async function GET() {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     
     await connectDB();
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(decoded.userId.toString());
 
     if (!user || !user.youtubeAccessToken) {
       return NextResponse.json({ error: "YouTube not connected" }, { status: 400 });
@@ -35,7 +35,14 @@ export async function GET() {
     const stats = channelData.items?.[0]?.statistics;
 
     if (!stats) {
-        return NextResponse.json({ error: "Stats not found" }, { status: 404 });
+        // Return zeros instead of 404 if no channel found
+        return NextResponse.json({
+            totalComments: 0,
+            totalSubscribers: 0,
+            totalVideos: 0,
+            avgSentiment: "0%",
+            vibe: "None",
+        });
     }
 
     return NextResponse.json({
