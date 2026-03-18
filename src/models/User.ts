@@ -4,7 +4,13 @@ import bcrypt from "bcryptjs";
 export interface IUser extends Document {
   name: string;
   email: string;
-  password: string;
+  password?: string;
+  youtubeConnected: boolean;
+  youtubeAccessToken?: string;
+  youtubeRefreshToken?: string;
+  youtubeChannelId?: string;
+  youtubeChannelTitle?: string;
+  youtubeChannelThumbnail?: string;
   createdAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -24,9 +30,18 @@ const UserSchema = new Schema<IUser>({
   },
   password: {
     type: String,
-    required: [true, "Password is required"],
+    required: false, // Optional for Google Auth users
     minlength: [6, "Password must be at least 6 characters"],
   },
+  youtubeConnected: {
+    type: Boolean,
+    default: false,
+  },
+  youtubeAccessToken: String,
+  youtubeRefreshToken: String,
+  youtubeChannelId: String,
+  youtubeChannelTitle: String,
+  youtubeChannelThumbnail: String,
   createdAt: {
     type: Date,
     default: Date.now,
@@ -35,7 +50,7 @@ const UserSchema = new Schema<IUser>({
 
 // Hash password before saving
 UserSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  if (!this.password || !this.isModified("password")) return;
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });
