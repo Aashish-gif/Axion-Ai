@@ -8,10 +8,46 @@ import { mockVideos } from "@/lib/mockData";
 import { Play, Youtube, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
+interface YouTubeVideo {
+    id: string;
+    title: string;
+    thumbnail: string;
+    commentCount: number;
+    sentimentScore: number;
+    emoji: string;
+    gradientFrom: string;
+    gradientTo: string;
+}
+
+interface ChannelStats {
+    totalComments: number;
+    totalSubscribers: number;
+    totalVideos: number;
+    avgSentiment: string;
+    vibe: string;
+}
+
+interface VideoReport {
+    id: string;
+    title: string;
+    commentCount: number;
+    sentimentScore: number;
+    emoji: string;
+    gradientFrom: string;
+    gradientTo: string;
+    goodPoints: string[];
+    improvPoints: string[];
+    flagPoints: string[];
+    questions: string[];
+    nextVideoIdea: string;
+}
+
 export default function DashboardHome() {
     const [loading, setLoading] = useState(true);
     const [connected, setConnected] = useState(false);
     const [userName, setUserName] = useState("");
+    const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+    const [stats, setStats] = useState<ChannelStats | null>(null);
 
     useEffect(() => {
         async function checkStatus() {
@@ -37,6 +73,29 @@ export default function DashboardHome() {
         }
         checkStatus();
     }, []);
+
+    useEffect(() => {
+        if (!connected) return;
+        async function fetchData() {
+            try {
+                const [vRes, sRes] = await Promise.all([
+                    fetch("/api/youtube/videos"),
+                    fetch("/api/youtube/stats")
+                ]);
+                if (vRes.ok) {
+                    const vData = await vRes.json();
+                    setVideos(vData.videos);
+                }
+                if (sRes.ok) {
+                    const sData = await sRes.json();
+                    setStats(sData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard data:", error);
+            }
+        }
+        fetchData();
+    }, [connected]);
 
     if (loading) {
         return (
@@ -81,6 +140,13 @@ export default function DashboardHome() {
         );
     }
 
+    const statConfig = [
+        { bg: "mint" as const, emoji: "💬", label: "TOTAL COMMENTS", value: stats?.totalComments?.toLocaleString() || "0", trend: "+12% this week", badge: null },
+        { bg: "yellow" as const, emoji: "😊", label: "AVG SENTIMENT", value: stats?.avgSentiment || "84%", trend: "Mostly Positive", badge: null },
+        { bg: "blue" as const, emoji: "🏆", label: "TOTAL SUBS", value: stats?.totalSubscribers?.toLocaleString() || "0", trend: "Channel Totals", badge: null },
+        { bg: "lavender" as const, emoji: "❤️", label: "CHANNEL VIBE", value: stats?.vibe || "Growing", trend: "", badge: "On Fire" },
+    ];
+
     return (
         <div className="animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
@@ -97,12 +163,7 @@ export default function DashboardHome() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
-                {[
-                    { bg: "mint" as const, emoji: "💬", label: "TOTAL COMMENTS", value: "48,291", trend: "+12% this week", badge: null },
-                    { bg: "yellow" as const, emoji: "😊", label: "AVG SENTIMENT", value: "84%", trend: "Mostly Positive", badge: null },
-                    { bg: "blue" as const, emoji: "🏆", label: "TOP REQUEST", value: "More Tutorials!", trend: "Mentioned 421 times", badge: null },
-                    { bg: "lavender" as const, emoji: "❤️", label: "CHANNEL VIBE", value: "Growing", trend: "", badge: "On Fire" },
-                ].map((stat, i) => (
+                {statConfig.map((stat, i) => (
                     <Card key={i} bg={stat.bg} hoverLift className="p-5 flex flex-col justify-between h-40">
                         <div className="flex justify-between items-start mb-2">
                             <span className="text-3xl">{stat.emoji}</span>
@@ -123,40 +184,57 @@ export default function DashboardHome() {
 
             {/* Recent Videos Grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockVideos.map((video) => (
-                    <Link href={`/dashboard/report/${video.id}`} key={video.id} className="block group">
-                        <Card hoverLift className="flex flex-col h-full bg-white transition-all overflow-hidden group-hover:-translate-y-1">
-                            <div
-                                className="h-[180px] w-full flex items-center justify-center relative border-b-[3px] border-dark-border"
-                                style={{ background: `linear-gradient(135deg, ${video.gradientFrom}, ${video.gradientTo})` }}
-                            >
-                                <span className="text-6xl drop-shadow-md z-10 transition-transform group-hover:scale-110">{video.emoji}</span>
+                {videos.length === 0 ? (
+                    <div className="col-span-full py-12 text-center bg-white border-4 border-dashed rounded-3xl">
+                        <Loader2 size={48} className="animate-spin mx-auto text-gray-300 mb-4" />
+                        <p className="font-heading font-bold text-gray-400 text-xl">Fetching your videos...</p>
+                    </div>
+                ) : (
+                    videos.map((video) => (
+                        <Link href={`/dashboard/report/${video.id}`} key={video.id} className="block group">
+                            <Card hoverLift className="flex flex-col h-full bg-white transition-all overflow-hidden group-hover:-translate-y-1">
+                                <div
+                                    className="h-[180px] w-full flex items-center justify-center relative border-b-[3px] border-dark-border"
+                                    style={{ background: `linear-gradient(135deg, ${video.gradientFrom}, ${video.gradientTo})` }}
+                                >
+                                    {video.thumbnail ? (
+                                        <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                    ) : (
+                                        <span className="text-6xl drop-shadow-md z-10 transition-transform group-hover:scale-110">{video.emoji}</span>
+                                    )}
+                                    
+                                    <div className="absolute top-4 left-4 z-20">
+                                        <div className="w-10 h-10 bg-white rounded-lg border-2 border-dark-border flex items-center justify-center text-xl shadow-[2px_2px_0_#111827]">
+                                            {video.emoji}
+                                        </div>
+                                    </div>
 
-                                {/* Hover Play Overlay */}
-                                <div className="absolute inset-0 bg-dark-border/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-[3px] border-dark-border shadow-[4px_4px_0_#111827]">
-                                        <Play size={24} fill="currentColor" className="ml-1 text-dark-border" />
+                                    {/* Hover Play Overlay */}
+                                    <div className="absolute inset-0 bg-dark-border/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm z-30">
+                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-[3px] border-dark-border shadow-[4px_4px_0_#111827]">
+                                            <Play size={24} fill="currentColor" className="ml-1 text-dark-border" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="p-5 flex-1 flex flex-col">
-                                <h3 className="font-heading font-extrabold text-lg text-dark-border leading-tight mb-4 flex-1 line-clamp-2">
-                                    {video.title}
-                                </h3>
+                                <div className="p-5 flex-1 flex flex-col">
+                                    <h3 className="font-heading font-extrabold text-lg text-dark-border leading-tight mb-4 flex-1 line-clamp-2">
+                                        {video.title}
+                                    </h3>
 
-                                <div className="flex items-center gap-2 mt-auto pt-2">
-                                    <Badge variant={video.sentimentScore >= 80 ? 'green' : 'red'} className="text-xs">
-                                        {video.sentimentScore}% Positive
-                                    </Badge>
-                                    <Badge variant="dark" className="text-xs bg-gray-100 !text-gray-600 !border-gray-300 !shadow-none">
-                                        {video.commentCount} cmts
-                                    </Badge>
+                                    <div className="flex items-center gap-2 mt-auto pt-2">
+                                        <Badge variant={video.sentimentScore >= 80 ? 'green' : 'red'} className="text-xs">
+                                            {video.sentimentScore}% Positive
+                                        </Badge>
+                                        <Badge variant="dark" className="text-xs bg-gray-100 !text-gray-600 !border-gray-300 !shadow-none">
+                                            {video.commentCount.toLocaleString()} cmts
+                                        </Badge>
+                                    </div>
                                 </div>
-                            </div>
-                        </Card>
-                    </Link>
-                ))}
+                            </Card>
+                        </Link>
+                    ))
+                )}
             </div>
         </div>
     );
