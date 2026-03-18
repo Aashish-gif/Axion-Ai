@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     // Sign JWT
     const token = jwt.sign(
-      { userId: user._id, email: user.email, name: user.name },
+      { userId: user._id.toString(), email: user.email, name: user.name },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error: unknown) {
-    console.error("Register error:", error);
+    console.error("Register error details:", error instanceof Error ? error.message : error);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }
