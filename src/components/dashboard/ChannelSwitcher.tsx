@@ -46,6 +46,7 @@ export function ChannelSwitcher() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                suppressHydrationWarning
                 className="flex items-center gap-3 p-2 pr-4 bg-white border-[3px] border-dark-border rounded-xl shadow-[4px_5px_0_#111827] transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-0 active:translate-y-0 active:shadow-none"
             >
                 <img 
