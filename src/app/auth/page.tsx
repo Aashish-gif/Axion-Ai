@@ -3,20 +3,48 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Mail, Lock, Play, ArrowRight, User } from "lucide-react";
 import Link from 'next/link';
 
 export default function AuthPage() {
     const [isSignIn, setIsSignIn] = useState(true);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const router = useRouter();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock authentication by setting a cookie
-        document.cookie = "axion_auth=true; path=/";
-        // Redirect to dashboard
-        router.push('/dashboard');
+        setError('');
+
+        if (isSignIn) {
+            // Sign In: check if user exists in localStorage
+            const storedUser = localStorage.getItem('axion_user');
+            if (!storedUser) {
+                setError('No account found. Please sign up first!');
+                return;
+            }
+            const user = JSON.parse(storedUser);
+            if (user.email !== email || user.password !== password) {
+                setError('Invalid email or password!');
+                return;
+            }
+            // Set auth cookie
+            document.cookie = "axion_auth=true; path=/; max-age=604800"; // 7 days
+            router.push('/dashboard');
+        } else {
+            // Sign Up: save user to localStorage
+            if (!name || !email || !password) {
+                setError('Please fill all fields!');
+                return;
+            }
+            const userData = { name, email, password };
+            localStorage.setItem('axion_user', JSON.stringify(userData));
+            // Set auth cookie
+            document.cookie = "axion_auth=true; path=/; max-age=604800"; // 7 days
+            router.push('/dashboard');
+        }
     };
 
     return (
@@ -52,6 +80,12 @@ export default function AuthPage() {
                         </p>
                     </div>
 
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-50 border-[2px] border-red-300 rounded-xl text-red-600 text-sm font-bold text-center">
+                            {error}
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-5 mb-8">
                         {!isSignIn && (
                             <div>
@@ -63,6 +97,8 @@ export default function AuthPage() {
                                     <input 
                                         type="text" 
                                         placeholder="John Doe"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
                                         className="w-full pl-11 pr-4 py-3 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                                         required
                                     />
@@ -79,6 +115,8 @@ export default function AuthPage() {
                                 <input 
                                     type="email" 
                                     placeholder="you@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                                     required
                                 />
@@ -99,6 +137,8 @@ export default function AuthPage() {
                                 <input 
                                     type="password" 
                                     placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                                     required
                                 />
@@ -141,7 +181,7 @@ export default function AuthPage() {
                         <p className="text-sm font-bold text-gray-600">
                             {isSignIn ? "Don't have an account?" : "Already have an account?"}
                             <button 
-                                onClick={() => setIsSignIn(!isSignIn)} 
+                                onClick={() => { setIsSignIn(!isSignIn); setError(''); }} 
                                 className="ml-2 text-accent-red hover:underline"
                             >
                                 {isSignIn ? 'Sign up for free' : 'Sign in'}
