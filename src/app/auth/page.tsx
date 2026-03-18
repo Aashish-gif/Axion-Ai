@@ -136,6 +136,7 @@ export default function AuthPage() {
                     placeholder="John Doe"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    suppressHydrationWarning
                     className="w-full pl-11 pr-4 py-3 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                     required
                     disabled={loading}
@@ -157,6 +158,7 @@ export default function AuthPage() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  suppressHydrationWarning
                   className="w-full pl-11 pr-4 py-3 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                   required
                   disabled={loading}
@@ -187,6 +189,7 @@ export default function AuthPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  suppressHydrationWarning
                   className="w-full pl-11 pr-4 py-3 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                   required
                   disabled={loading}
@@ -227,6 +230,7 @@ export default function AuthPage() {
           <button
             type="button"
             disabled={loading}
+            suppressHydrationWarning
             className="w-full flex items-center justify-center gap-3 px-6 py-3 font-heading font-bold rounded-2xl border-[3px] border-dark-border bg-white text-dark-border transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-0 active:translate-y-0 active:shadow-none shadow-[4px_5px_0_#111827] drop-shadow-[0_0_15px_rgba(255,59,59,0.2)] hover:drop-shadow-[0_0_20px_rgba(255,59,59,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
