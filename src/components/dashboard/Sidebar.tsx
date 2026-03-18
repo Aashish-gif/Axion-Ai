@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Play } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Play, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const [userName, setUserName] = useState("");
+    const [userInitials, setUserInitials] = useState("");
+    const [loggingOut, setLoggingOut] = useState(false);
 
     const navItems = [
         { label: "Dashboard", emoji: "📊", href: "/dashboard" },
@@ -13,6 +18,38 @@ export function Sidebar() {
         { label: "Idea Factory", emoji: "💡", href: "/dashboard/ideas" },
         { label: "Settings", emoji: "⚙️", href: "/dashboard/settings" },
     ];
+
+    // Fetch user info on mount
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const res = await fetch("/api/auth/me");
+                if (res.ok) {
+                    const data = await res.json();
+                    setUserName(data.user.name);
+                    const parts = data.user.name.split(" ");
+                    const initials = parts.length >= 2
+                        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                        : data.user.name.substring(0, 2).toUpperCase();
+                    setUserInitials(initials);
+                }
+            } catch {
+                // Silently fail — middleware will handle redirect if not authenticated
+            }
+        }
+        fetchUser();
+    }, []);
+
+    const handleLogout = async () => {
+        setLoggingOut(true);
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+            router.push("/auth");
+            router.refresh();
+        } catch {
+            setLoggingOut(false);
+        }
+    };
 
     return (
         <>
@@ -53,15 +90,23 @@ export function Sidebar() {
 
                 <div className="mt-auto p-6">
                     <div className="text-xs font-bold text-gray-400 mb-4 px-2 uppercase tracking-wider">ACCOUNT</div>
-                    <div className="flex items-center gap-3 px-2">
+                    <div className="flex items-center gap-3 px-2 mb-4">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-red to-orange-400 border-2 border-dark-border flex items-center justify-center text-white font-bold text-sm shadow-[2px_2px_0_#111827]">
-                            MK
+                            {userInitials || "..."}
                         </div>
                         <div className="overflow-hidden">
-                            <div className="font-bold text-sm truncate text-dark-border">MrKreator</div>
+                            <div className="font-bold text-sm truncate text-dark-border">{userName || "Loading..."}</div>
                             <div className="text-xs font-bold text-gray-500">Pro Plan</div>
                         </div>
                     </div>
+                    <button
+                        onClick={handleLogout}
+                        disabled={loggingOut}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 font-heading font-bold rounded-xl border-[2.5px] border-dark-border shadow-[3px_4px_0_#111827] bg-white text-dark-border transition-all hover:-translate-x-[1px] hover:-translate-y-[1px] hover:text-accent-red active:translate-x-0 active:translate-y-0 active:shadow-none disabled:opacity-50"
+                    >
+                        <LogOut size={16} />
+                        {loggingOut ? "Logging out..." : "Logout"}
+                    </button>
                 </div>
             </aside>
 
