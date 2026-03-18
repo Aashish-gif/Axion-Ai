@@ -103,6 +103,7 @@ export function Sidebar() {
                     <button
                         onClick={handleLogout}
                         disabled={loggingOut}
+                        suppressHydrationWarning
                         className="w-full flex items-center justify-center gap-2 py-2.5 px-4 font-heading font-bold rounded-xl border-[2.5px] border-dark-border shadow-[3px_4px_0_#111827] bg-white text-dark-border transition-all hover:-translate-x-[1px] hover:-translate-y-[1px] hover:text-accent-red active:translate-x-0 active:translate-y-0 active:shadow-none disabled:opacity-50"
                     >
                         <LogOut size={16} />
