@@ -56,6 +56,14 @@ export async function GET(
             flagPoints: [],
             questions: ["How do I start with AI?", "What tools are you using?", "Can you do a tutorial?"],
             nextVideoIdea: "Deep dive into AI-driven content creation",
+            metrics: {
+                views: "1240",
+                likes: "88",
+                favorites: "0",
+                shares: "24",
+                watchTime: "1.2k hours",
+                downloads: "0",
+            }
         });
     }
 
