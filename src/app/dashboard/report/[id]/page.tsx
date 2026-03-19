@@ -21,6 +21,16 @@ interface VideoReport {
     flagPoints: string[];
     questions: string[];
     nextVideoIdea: string;
+    whatIsGreat: string;
+    whatIsBad: string;
+    metrics: {
+        views: string;
+        likes: string;
+        favorites: string;
+        shares: string;
+        watchTime: string;
+        downloads: string;
+    };
 }
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
@@ -186,7 +196,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                         <div className="absolute top-4 right-4 text-6xl opacity-20">💡</div>
                         <div className="text-white relative z-10 h-full flex flex-col">
                             <div className="text-xs font-black uppercase tracking-wider mb-2 opacity-90">🧠 AI Idea Generator</div>
-                            <h3 className="font-heading font-black italic text-3xl leading-tight mb-8 mt-4 flex-1">
+                            <h3 className="font-heading font-black italic text-2xl leading-tight mb-4 mt-4 flex-1">
                                 "{video.nextVideoIdea}"
                             </h3>
                             <div className="inline-flex items-center gap-2 bg-black/20 w-fit px-3 py-1.5 rounded-lg border border-white/20 font-bold text-sm">
@@ -194,6 +204,46 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                             </div>
                         </div>
                     </Card>
+                </div>
+
+                {/* New: Detailed Stats & AI Summary */}
+                <div className="grid md:grid-cols-2 gap-8 mb-10">
+                    <Card bg="white" className="p-8 border-4">
+                         <h2 className="font-heading font-black text-2xl mb-6 flex items-center gap-2">📊 Video Metrics</h2>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
+                                <div className="text-[10px] font-black text-gray-400 uppercase">Views</div>
+                                <div className="text-2xl font-black text-dark-border">{parseInt(video.metrics.views).toLocaleString()}</div>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
+                                <div className="text-[10px] font-black text-gray-400 uppercase">Likes</div>
+                                <div className="text-2xl font-black text-dark-border">{parseInt(video.metrics.likes).toLocaleString()}</div>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
+                                <div className="text-[10px] font-black text-gray-400 uppercase">Shares</div>
+                                <div className="text-xl font-black text-gray-500">{video.metrics.shares}</div>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
+                                <div className="text-[10px] font-black text-gray-400 uppercase">Watch Time</div>
+                                <div className="text-sm font-black text-gray-400">{video.metrics.watchTime}</div>
+                            </div>
+                         </div>
+                    </Card>
+
+                    <div className="space-y-6">
+                        <Card bg="mint" className="p-6 border-l-8 border-l-green-500">
+                             <h3 className="font-heading font-black text-xl mb-2 italic">🌟 What's Great?</h3>
+                             <p className="text-dark-border font-medium leading-relaxed">
+                                 {video.whatIsGreat}
+                             </p>
+                        </Card>
+                        <Card bg="lavender" className="p-6 border-l-8 border-l-purple-500">
+                             <h3 className="font-heading font-black text-xl mb-2 italic">📉 What's Missing?</h3>
+                             <p className="text-dark-border font-medium leading-relaxed">
+                                 {video.whatIsBad}
+                             </p>
+                        </Card>
+                    </div>
                 </div>
 
                 {/* AI Insights 3-col grid */}
