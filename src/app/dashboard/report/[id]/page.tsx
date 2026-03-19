@@ -213,19 +213,19 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                          <div className="grid grid-cols-2 gap-4">
                             <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
                                 <div className="text-[10px] font-black text-gray-400 uppercase">Views</div>
-                                <div className="text-2xl font-black text-dark-border">{parseInt(video.metrics.views).toLocaleString()}</div>
+                                <div className="text-2xl font-black text-dark-border">{parseInt(video.metrics?.views || "0").toLocaleString()}</div>
                             </div>
                             <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
                                 <div className="text-[10px] font-black text-gray-400 uppercase">Likes</div>
-                                <div className="text-2xl font-black text-dark-border">{parseInt(video.metrics.likes).toLocaleString()}</div>
+                                <div className="text-2xl font-black text-dark-border">{parseInt(video.metrics?.likes || "0").toLocaleString()}</div>
                             </div>
                             <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
                                 <div className="text-[10px] font-black text-gray-400 uppercase">Shares</div>
-                                <div className="text-xl font-black text-gray-500">{video.metrics.shares}</div>
+                                <div className="text-xl font-black text-gray-500">{video.metrics?.shares || "N/A"}</div>
                             </div>
                             <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dark-border/5">
                                 <div className="text-[10px] font-black text-gray-400 uppercase">Watch Time</div>
-                                <div className="text-sm font-black text-gray-400">{video.metrics.watchTime}</div>
+                                <div className="text-sm font-black text-gray-400">{video.metrics?.watchTime || "N/A"}</div>
                             </div>
                          </div>
                     </Card>
