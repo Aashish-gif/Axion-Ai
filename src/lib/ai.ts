@@ -1,9 +1,4 @@
-import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const gemini = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -33,76 +28,37 @@ Return ONLY a JSON object with the following structure:
   "whatIsBad": string
 }
 Keep points concise and actionable. "whatIsGreat" and "whatIsBad" should be a summary paragraph each.
+"whatIsGreat" should highlight strengths in content, engagement, or production.
+"whatIsBad" should highlight constructive feedback, missing information, or audience frustrations.
 `;
 
-async function getOpenAIReport(comments: string[], stats: any): Promise<AIReport | null> {
-  if (!process.env.OPENAI_API_KEY) return null;
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: `Comments: ${JSON.stringify(comments)}\nStats: ${JSON.stringify(stats)}` },
-      ],
-      response_format: { type: "json_object" },
-    });
-    return JSON.parse(response.choices[0].message.content || "{}") as AIReport;
-  } catch (error) {
-    console.error("OpenAI Error:", error);
-    return null;
+export async function generateAIReport(comments: string[], stats: any): Promise<AIReport> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is missing");
   }
-}
 
-async function getGeminiReport(comments: string[], stats: any): Promise<AIReport | null> {
-  if (!process.env.GEMINI_API_KEY) return null;
   try {
     const prompt = `${SYSTEM_PROMPT}\n\nComments: ${JSON.stringify(comments)}\nStats: ${JSON.stringify(stats)}`;
     const result = await gemini.generateContent(prompt);
     const text = result.response.text();
+    
     // Clean-up Gemini response if it includes markdown code blocks
     const jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    return JSON.parse(jsonStr) as AIReport;
+    const report = JSON.parse(jsonStr) as AIReport;
+
+    // Ensure we have at least some data
+    return {
+      sentimentScore: report.sentimentScore || 70,
+      goodPoints: report.goodPoints || [],
+      improvPoints: report.improvPoints || [],
+      flagPoints: report.flagPoints || [],
+      questions: report.questions || [],
+      nextVideoIdea: report.nextVideoIdea || "Continue your series",
+      whatIsGreat: report.whatIsGreat || "Great audience engagement.",
+      whatIsBad: report.whatIsBad || "No major issues reported."
+    };
   } catch (error) {
     console.error("Gemini Error:", error);
-    return null;
+    throw error;
   }
-}
-
-export async function generateMergedReport(comments: string[], stats: any): Promise<AIReport> {
-  const [openAIReport, geminiReport] = await Promise.all([
-    getOpenAIReport(comments, stats),
-    getGeminiReport(comments, stats),
-  ]);
-
-  if (!openAIReport && !geminiReport) {
-    throw new Error("Both AI models failed to generate a report");
-  }
-
-  // Merging Logic
-  const merged: AIReport = {
-    sentimentScore: 0,
-    goodPoints: [],
-    improvPoints: [],
-    flagPoints: [],
-    questions: [],
-    nextVideoIdea: "",
-    whatIsGreat: "",
-    whatIsBad: "",
-  };
-
-  if (openAIReport && geminiReport) {
-    merged.sentimentScore = Math.round((openAIReport.sentimentScore + geminiReport.sentimentScore) / 2);
-    merged.goodPoints = Array.from(new Set([...openAIReport.goodPoints, ...geminiReport.goodPoints])).slice(0, 5);
-    merged.improvPoints = Array.from(new Set([...openAIReport.improvPoints, ...geminiReport.improvPoints])).slice(0, 5);
-    merged.flagPoints = Array.from(new Set([...openAIReport.flagPoints, ...geminiReport.flagPoints]));
-    merged.questions = Array.from(new Set([...openAIReport.questions, ...geminiReport.questions])).slice(0, 8);
-    merged.nextVideoIdea = openAIReport.nextVideoIdea; // Default to OpenAI for idea or combine?
-    merged.whatIsGreat = openAIReport.whatIsGreat;
-    merged.whatIsBad = geminiReport.whatIsBad; // Mix them up
-  } else {
-    const report = openAIReport || geminiReport!;
-    Object.assign(merged, report);
-  }
-
-  return merged;
 }
