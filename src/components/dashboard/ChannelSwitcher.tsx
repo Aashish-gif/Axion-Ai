@@ -11,25 +11,34 @@ type Channel = {
     avatarUrl: string;
 };
 
-const mockChannels: Channel[] = [
-    {
-        id: '1',
-        name: 'Axionix Official',
-        subscribers: '1.2M',
-        avatarUrl: 'https://ui-avatars.com/api/?name=Axionix+Official&background=FF3B3B&color=fff',
-    },
-    {
-        id: '2',
-        name: 'Tech Updates',
-        subscribers: '450K',
-        avatarUrl: 'https://ui-avatars.com/api/?name=Tech+Updates&background=111827&color=fff',
-    }
-];
-
 export function ChannelSwitcher() {
     const [isOpen, setIsOpen] = useState(false);
-    const [activeChannel, setActiveChannel] = useState<Channel>(mockChannels[0]);
+    const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
+    const [loading, setLoading] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Fetch real channel info
+    useEffect(() => {
+        async function fetchChannel() {
+            try {
+                const res = await fetch("/api/youtube/stats");
+                if (res.ok) {
+                    const data = await res.json();
+                    setActiveChannel({
+                        id: 'mine',
+                        name: data.channelName,
+                        subscribers: (data.totalSubscribers / 1000).toFixed(0) + 'K', // Simple formatting
+                        avatarUrl: data.channelAvatar
+                    });
+                }
+            } catch (err) {
+                console.error("Fetch channel switcher error:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchChannel();
+    }, []);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -41,6 +50,12 @@ export function ChannelSwitcher() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    if (loading || !activeChannel) {
+        return (
+            <div className="w-48 h-12 bg-gray-100 rounded-xl animate-pulse"></div>
+        );
+    }
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -67,31 +82,22 @@ export function ChannelSwitcher() {
                     </div>
                     
                     <div className="max-h-64 overflow-y-auto">
-                        {mockChannels.map((channel) => (
-                            <button
-                                key={channel.id}
-                                onClick={() => {
-                                    setActiveChannel(channel);
-                                    setIsOpen(false);
-                                }}
-                                className="w-full flex items-center justify-between p-3 hover:bg-gray-100 transition-colors border-b-2 border-gray-100 last:border-0"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <img 
-                                        src={channel.avatarUrl} 
-                                        alt={channel.name} 
-                                        className="w-10 h-10 rounded-full border-2 border-dark-border"
-                                    />
-                                    <div className="text-left">
-                                        <div className="font-bold text-dark-border text-sm">{channel.name}</div>
-                                        <div className="text-xs text-gray-500 font-medium">{channel.subscribers} subs</div>
-                                    </div>
+                        <button
+                            className="w-full flex items-center justify-between p-3 hover:bg-gray-100 transition-colors border-b-2 border-gray-100 last:border-0"
+                        >
+                            <div className="flex items-center gap-3">
+                                <img 
+                                    src={activeChannel.avatarUrl} 
+                                    alt={activeChannel.name} 
+                                    className="w-10 h-10 rounded-full border-2 border-dark-border"
+                                />
+                                <div className="text-left">
+                                    <div className="font-bold text-dark-border text-sm">{activeChannel.name}</div>
+                                    <div className="text-xs text-gray-500 font-medium">{activeChannel.subscribers} subs</div>
                                 </div>
-                                {activeChannel.id === channel.id && (
-                                    <Check size={18} className="text-accent-red" />
-                                )}
-                            </button>
-                        ))}
+                            </div>
+                            <Check size={18} className="text-accent-red" />
+                        </button>
                     </div>
 
                     <div className="p-3 border-t-[3px] border-dark-border bg-gray-50">
