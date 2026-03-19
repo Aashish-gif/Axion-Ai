@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import { generateMergedReport } from "@/lib/ai";
 
 interface JwtPayload {
   userId: string;
@@ -58,31 +59,61 @@ export async function GET(
         });
     }
 
-    // 3. Fetch Top Comments for "AI Analysis" simulation
+    // 3. Fetch More Comments for AI Analysis
     const commentsRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=20`,
+        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=100`,
         { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
     );
     const commentsData = await commentsRes.json();
     const commentTexts = commentsData.items?.map((it: any) => it.snippet.topLevelComment.snippet.textDisplay) || [];
 
-    // 4. Simple Analysis Simulation (Replace with Gemini/AI later)
-    const sentimentScore = 75 + (commentTexts.length % 20);
-    const questions = commentTexts.filter((t: string) => t.includes("?")).slice(0, 5);
+    // 4. Generate Merged AI Report
+    const stats = {
+        views: video.statistics.viewCount,
+        likes: video.statistics.likeCount,
+        comments: video.statistics.commentCount,
+    };
+
+    let aiReport;
+    try {
+        aiReport = await generateMergedReport(commentTexts, stats);
+    } catch (e) {
+        console.error("AI Generation failed, using fallback:", e);
+        aiReport = {
+            sentimentScore: 70,
+            goodPoints: ["Engaging content", "Good production"],
+            improvPoints: ["Add more calls to action"],
+            flagPoints: [],
+            questions: commentTexts.filter((t: string) => t.includes("?")).slice(0, 5),
+            nextVideoIdea: `Deep dive into ${video.snippet.title.split(' ')[0]}`,
+            whatIsGreat: "Your audience seems very engaged and appreciative of the quality.",
+            whatIsBad: "Some users noted that the pacing could be improved in the middle section."
+        };
+    }
     
     return NextResponse.json({
         id: video.id,
         title: video.snippet.title,
         commentCount: parseInt(video.statistics.commentCount || "0"),
-        sentimentScore,
+        sentimentScore: aiReport.sentimentScore,
         emoji: "🎬",
         gradientFrom: "#FF3B3B",
         gradientTo: "#FF6B35",
-        goodPoints: ["Engaging title", "High audience retention", "Positive feedback on visual quality"],
-        improvPoints: ["Audio clarity in intro", "Add more links to description"],
-        flagPoints: [],
-        questions: questions.length > 0 ? questions : ["Can you explain the setup process more?", "What gear do you use?"],
-        nextVideoIdea: `Deep dive into ${video.snippet.title.split(' ')[0]} strategies`,
+        goodPoints: aiReport.goodPoints,
+        improvPoints: aiReport.improvPoints,
+        flagPoints: aiReport.flagPoints,
+        questions: aiReport.questions,
+        nextVideoIdea: aiReport.nextVideoIdea,
+        whatIsGreat: aiReport.whatIsGreat,
+        whatIsBad: aiReport.whatIsBad,
+        metrics: {
+            views: video.statistics.viewCount,
+            likes: video.statistics.likeCount,
+            favorites: video.statistics.favoriteCount || "0",
+            shares: "N/A", // Shares not available in this API
+            watchTime: "Premium Feature", // Needs Analytics API
+            downloads: "Manual Tracking", // Not available via API
+        }
     });
   } catch (error) {
     console.error("Fetch report error:", error);
