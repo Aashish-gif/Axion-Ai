@@ -28,7 +28,7 @@ export async function GET() {
 
     // Fetch Channel Statistics
     const channelRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails&mine=true`,
+      `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&mine=true`,
       { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
     );
     const channelData = await channelRes.json();
@@ -36,13 +36,15 @@ export async function GET() {
     const stats = channel?.statistics;
     const uploadsPlaylistId = channel?.contentDetails?.relatedPlaylists?.uploads;
 
-    if (!stats) {
+    if (!stats || !channel) {
         return NextResponse.json({
             totalComments: 0,
             totalSubscribers: 0,
             totalVideos: 0,
             avgSentiment: "0%",
             vibe: "None",
+            channelName: "Your Channel",
+            channelAvatar: "",
         });
     }
 
@@ -100,8 +102,8 @@ export async function GET() {
         totalVideos: parseInt(stats.videoCount || "0"),
         avgSentiment: `${avgSentiment}%`,
         vibe: vibe,
-        channelName: channel.snippet.title,
-        channelAvatar: channel.snippet.thumbnails.default.url,
+        channelName: channel.snippet?.title || "Your Channel",
+        channelAvatar: channel.snippet?.thumbnails?.default?.url || "",
         // Add some trend data for the UI
         trends: {
             comments: "+8% this week",
