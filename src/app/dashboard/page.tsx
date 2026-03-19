@@ -25,6 +25,12 @@ interface ChannelStats {
     totalVideos: number;
     avgSentiment: string;
     vibe: string;
+    trends?: {
+        comments: string;
+        subscribers: string;
+        sentiment: string;
+        vibe: string;
+    }
 }
 
 interface VideoReport {
@@ -44,10 +50,30 @@ interface VideoReport {
 
 export default function DashboardHome() {
     const [loading, setLoading] = useState(true);
+    const [syncing, setSyncing] = useState(false);
     const [connected, setConnected] = useState(false);
     const [userName, setUserName] = useState("");
     const [videos, setVideos] = useState<YouTubeVideo[]>([]);
     const [stats, setStats] = useState<ChannelStats | null>(null);
+
+    const fetchData = async () => {
+        try {
+            const [vRes, sRes] = await Promise.all([
+                fetch("/api/youtube/videos"),
+                fetch("/api/youtube/stats")
+            ]);
+            if (vRes.ok) {
+                const vData = await vRes.json();
+                setVideos(vData.videos);
+            }
+            if (sRes.ok) {
+                const sData = await sRes.json();
+                setStats(sData);
+            }
+        } catch (error) {
+            console.error("Failed to fetch dashboard data:", error);
+        }
+    };
 
     useEffect(() => {
         async function checkStatus() {
@@ -76,26 +102,14 @@ export default function DashboardHome() {
 
     useEffect(() => {
         if (!connected) return;
-        async function fetchData() {
-            try {
-                const [vRes, sRes] = await Promise.all([
-                    fetch("/api/youtube/videos"),
-                    fetch("/api/youtube/stats")
-                ]);
-                if (vRes.ok) {
-                    const vData = await vRes.json();
-                    setVideos(vData.videos);
-                }
-                if (sRes.ok) {
-                    const sData = await sRes.json();
-                    setStats(sData);
-                }
-            } catch (error) {
-                console.error("Failed to fetch dashboard data:", error);
-            }
-        }
         fetchData();
     }, [connected]);
+
+    const handleSync = async () => {
+        setSyncing(true);
+        await fetchData();
+        setSyncing(false);
+    };
 
     if (loading) {
         return (
@@ -125,7 +139,7 @@ export default function DashboardHome() {
                         To see what your audience is saying, read comments, and get AI insights, you need to connect your YouTube channel first.
                     </p>
                     
-                    <a href="/api/auth/youtube">
+                    <a href="/api/youtube/auth">
                         <Button variant="primary" className="flex items-center gap-3 text-lg px-8 py-6">
                             <Play size={20} fill="currentColor" /> Connect YouTube Channel
                         </Button>
@@ -141,10 +155,38 @@ export default function DashboardHome() {
     }
 
     const statConfig = [
-        { bg: "mint" as const, emoji: "💬", label: "TOTAL COMMENTS", value: stats?.totalComments?.toLocaleString() || "0", trend: "+12% this week", badge: null },
-        { bg: "yellow" as const, emoji: "😊", label: "AVG SENTIMENT", value: stats?.avgSentiment || "84%", trend: "Mostly Positive", badge: null },
-        { bg: "blue" as const, emoji: "🏆", label: "TOTAL SUBS", value: stats?.totalSubscribers?.toLocaleString() || "0", trend: "Channel Totals", badge: null },
-        { bg: "lavender" as const, emoji: "❤️", label: "CHANNEL VIBE", value: stats?.vibe || "Growing", trend: "", badge: "On Fire" },
+        { 
+            bg: "mint" as const, 
+            emoji: "💬", 
+            label: "TOTAL COMMENTS", 
+            value: stats?.totalComments?.toLocaleString() || "0", 
+            trend: stats?.trends?.comments || "+12% this week", 
+            badge: null 
+        },
+        { 
+            bg: "yellow" as const, 
+            emoji: "😊", 
+            label: "AVG SENTIMENT", 
+            value: stats?.avgSentiment || "84%", 
+            trend: stats?.trends?.sentiment || "Mostly Positive", 
+            badge: null 
+        },
+        { 
+            bg: "blue" as const, 
+            emoji: "🏆", 
+            label: "TOTAL SUBS", 
+            value: stats?.totalSubscribers?.toLocaleString() || "0", 
+            trend: stats?.trends?.subscribers || "Channel Totals", 
+            badge: null 
+        },
+        { 
+            bg: "lavender" as const, 
+            emoji: "❤️", 
+            label: "CHANNEL VIBE", 
+            value: stats?.vibe || "Growing", 
+            trend: stats?.trends?.vibe || "Active", 
+            badge: stats?.vibe === "On Fire! 🔥" ? "On Fire" : null 
+        },
     ];
 
     return (
@@ -156,8 +198,14 @@ export default function DashboardHome() {
                     </h1>
                     <p className="text-gray-500 font-bold">Here is what your audience is saying today.</p>
                 </div>
-                <Button variant="primary" className="flex items-center gap-2 w-fit">
-                    <Play size={18} fill="currentColor" /> Sync Channel
+                <Button 
+                    variant="primary" 
+                    className="flex items-center gap-2 w-fit disabled:opacity-70"
+                    onClick={handleSync}
+                    disabled={syncing}
+                >
+                    {syncing ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} fill="currentColor" />}
+                    {syncing ? "Syncing..." : "Sync Channel"}
                 </Button>
             </div>
 
