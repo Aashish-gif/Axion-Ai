@@ -15,21 +15,26 @@ export interface AIReport {
 }
 
 const SYSTEM_PROMPT = `
-You are a YouTube Audience Analyst. Analyze the provided comments and video statistics to generate a detailed report.
+You are a YouTube Audience Analyst. Analyze the provided comments and video statistics to generate a detailed, unique report for THIS SPECIFIC video.
+DO NOT use generic phrases. Every point must be derived from the actual comments or stats provided.
+
 Return ONLY a JSON object with the following structure:
 {
   "sentimentScore": number (0-100),
-  "goodPoints": string[],
-  "improvPoints": string[],
-  "flagPoints": string[],
-  "questions": string[],
-  "nextVideoIdea": string,
-  "whatIsGreat": string,
-  "whatIsBad": string
+  "goodPoints": string[] (3-5 specific points),
+  "improvPoints": string[] (3-5 actionable points),
+  "flagPoints": string[] (any red flags like spam or hate, or empty array),
+  "questions": string[] (top 5 unique questions from comments),
+  "nextVideoIdea": string (a creative, high-potential idea based on audience gaps),
+  "whatIsGreat": string (2-3 sentences summarizing the biggest strengths),
+  "whatIsBad": string (2-3 sentences summarizing the biggest weaknesses or missing elements)
 }
-Keep points concise and actionable. "whatIsGreat" and "whatIsBad" should be a summary paragraph each.
-"whatIsGreat" should highlight strengths in content, engagement, or production.
-"whatIsBad" should highlight constructive feedback, missing information, or audience frustrations.
+
+Guidelines:
+- Be specific: Mention specific topics or feedback from the comments.
+- Sentiment: Base the score strictly on comment tone.
+- Ideas: If people ask "how to", "why", or "more about X", base the next video idea on that.
+- Diversity: Ensure the report feels custom-made for the video title and content.
 `;
 
 export async function generateAIReport(comments: string[], stats: any): Promise<AIReport> {
