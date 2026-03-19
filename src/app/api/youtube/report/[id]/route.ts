@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
-import { generateMergedReport } from "@/lib/ai";
+import { generateAIReport } from "@/lib/ai";
 
 interface JwtPayload {
   userId: string;
@@ -76,7 +76,7 @@ export async function GET(
 
     let aiReport;
     try {
-        aiReport = await generateMergedReport(commentTexts, stats);
+        aiReport = await generateAIReport(commentTexts, stats);
     } catch (e) {
         console.error("AI Generation failed, using fallback:", e);
         aiReport = {
