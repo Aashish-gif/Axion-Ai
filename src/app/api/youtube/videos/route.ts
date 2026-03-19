@@ -47,16 +47,45 @@ export async function GET() {
     const vItems = playlistData.items || [];
     const videoIds = vItems.map((item: any) => item.snippet.resourceId.videoId).join(",");
 
-    // 3. Get detailed statistics for these videos
+    // 3. Get detailed statistics and snippets for these videos
     const videosRes = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}`,
       { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
     );
     const videosData = await videosRes.json();
 
-    const videos = videosData.items?.map((item: any, index: number) => {
-        // Generate stable-ish mock sentiment for the UI
-        const sentimentScore = 70 + (parseInt(item.statistics.commentCount || "0") % 25);
+    const videoItems = videosData.items || [];
+    const videos = await Promise.all(videoItems.map(async (item: any, index: number) => {
+        // Fetch real comments for this video to get a more dynamic sentiment score
+        let sentimentScore = 75; // Default fallback
+        try {
+            const commentsRes = await fetch(
+                `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${item.id}&maxResults=15`,
+                { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
+            );
+            const commentsData = await commentsRes.json();
+            const comments = commentsData.items || [];
+            
+            if (comments.length > 0) {
+                const positiveWords = ["great", "awesome", "love", "good", "best", "thanks", "amazing", "wow", "nice", "king", "goat", "win"];
+                const negativeWords = ["bad", "worst", "hate", "terrible", "awful", "boring", "stop", "no", "fail", "lose"];
+                
+                let positiveCount = 0;
+                comments.forEach((c: any) => {
+                    const text = c.snippet.topLevelComment.snippet.textDisplay.toLowerCase();
+                    if (positiveWords.some(word => text.includes(word))) positiveCount++;
+                    if (negativeWords.some(word => text.includes(word))) positiveCount -= 0.5;
+                });
+                
+                // Base 65% + bonus for positive comments, capped at 99%
+                sentimentScore = Math.min(99, Math.max(40, Math.round(65 + (positiveCount / comments.length) * 35)));
+            }
+        } catch (e) {
+            console.error(`Error fetching comments for video ${item.id}:`, e);
+            // Fallback to the old pseudo-random formula if fetch fails
+            sentimentScore = 70 + (parseInt(item.statistics.commentCount || "0") % 25);
+        }
+
         const emojis = ["🚀", "💻", "📸", "🎨", "💰", "🤖", "🎬", "🔥", "✨"];
         
         return {
@@ -70,7 +99,7 @@ export async function GET() {
             gradientFrom: index % 2 === 0 ? "#FF3B3B" : "#3B82F6",
             gradientTo: index % 2 === 0 ? "#FF6B35" : "#2DD4BF",
         };
-    }) || [];
+    }));
 
     return NextResponse.json({ videos });
   } catch (error) {
