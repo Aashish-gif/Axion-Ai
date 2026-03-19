@@ -139,7 +139,7 @@ export default function DashboardHome() {
                         To see what your audience is saying, read comments, and get AI insights, you need to connect your YouTube channel first.
                     </p>
                     
-                    <a href="/api/youtube/auth">
+                    <a href="/api/auth/youtube">
                         <Button variant="primary" className="flex items-center gap-3 text-lg px-8 py-6">
                             <Play size={20} fill="currentColor" /> Connect YouTube Channel
                         </Button>
