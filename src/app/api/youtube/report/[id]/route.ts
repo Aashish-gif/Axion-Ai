@@ -77,6 +77,7 @@ export async function GET(
 
     // 4. Generate Merged AI Report
     const stats = {
+        title: video.snippet.title,
         views: video.statistics.viewCount,
         likes: video.statistics.likeCount,
         comments: video.statistics.commentCount,
