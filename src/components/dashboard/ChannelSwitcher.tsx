@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Plus, Youtube, Check } from 'lucide-react';
+import { ChevronDown, Plus, Youtube, Check, User } from 'lucide-react';
 import { Button } from "@/components/ui/Button";
 
 type Channel = {
@@ -28,7 +28,7 @@ export function ChannelSwitcher() {
                         id: 'mine',
                         name: data.channelName,
                         subscribers: (data.totalSubscribers / 1000).toFixed(0) + 'K', // Simple formatting
-                        avatarUrl: data.channelAvatar
+                        avatarUrl: data.channelAvatar || null
                     });
                 }
             } catch (err) {
@@ -64,11 +64,17 @@ export function ChannelSwitcher() {
                 suppressHydrationWarning
                 className="flex items-center gap-3 p-2 pr-4 bg-white border-[3px] border-dark-border rounded-xl shadow-[4px_5px_0_#111827] transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-0 active:translate-y-0 active:shadow-none"
             >
-                <img 
-                    src={activeChannel.avatarUrl} 
-                    alt={activeChannel.name} 
-                    className="w-8 h-8 rounded-full border-2 border-dark-border"
-                />
+                {activeChannel.avatarUrl ? (
+                    <img 
+                        src={activeChannel.avatarUrl} 
+                        alt={activeChannel.name} 
+                        className="w-8 h-8 rounded-full border-2 border-dark-border object-cover"
+                    />
+                ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-dark-border bg-gray-100 flex items-center justify-center overflow-hidden">
+                        <User size={18} className="text-gray-400" />
+                    </div>
+                )}
                 <span className="font-heading font-bold text-dark-border max-w-[120px] truncate">
                     {activeChannel.name}
                 </span>
@@ -86,11 +92,17 @@ export function ChannelSwitcher() {
                             className="w-full flex items-center justify-between p-3 hover:bg-gray-100 transition-colors border-b-2 border-gray-100 last:border-0"
                         >
                             <div className="flex items-center gap-3">
-                                <img 
-                                    src={activeChannel.avatarUrl} 
-                                    alt={activeChannel.name} 
-                                    className="w-10 h-10 rounded-full border-2 border-dark-border"
-                                />
+                                {activeChannel.avatarUrl ? (
+                                    <img 
+                                        src={activeChannel.avatarUrl} 
+                                        alt={activeChannel.name} 
+                                        className="w-10 h-10 rounded-full border-2 border-dark-border object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full border-2 border-dark-border bg-gray-100 flex items-center justify-center overflow-hidden">
+                                        <User size={20} className="text-gray-400" />
+                                    </div>
+                                )}
                                 <div className="text-left">
                                     <div className="font-bold text-dark-border text-sm">{activeChannel.name}</div>
                                     <div className="text-xs text-gray-500 font-medium">{activeChannel.subscribers} subs</div>
