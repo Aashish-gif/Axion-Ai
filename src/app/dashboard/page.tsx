@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { mockVideos } from "@/lib/mockData";
-import { Play, Youtube, AlertCircle, Loader2 } from "lucide-react";
+import { Play, Youtube, AlertCircle, Loader2, Search } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSearch } from "@/context/SearchContext";
 
 interface YouTubeVideo {
     id: string;
@@ -55,6 +56,7 @@ export default function DashboardHome() {
     const [userName, setUserName] = useState("");
     const [videos, setVideos] = useState<YouTubeVideo[]>([]);
     const [stats, setStats] = useState<ChannelStats | null>(null);
+    const { searchQuery } = useSearch();
 
     const fetchData = async () => {
         try {
@@ -189,6 +191,10 @@ export default function DashboardHome() {
         },
     ];
 
+    const filteredVideos = videos.filter(video => 
+        video.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
@@ -232,13 +238,18 @@ export default function DashboardHome() {
 
             {/* Recent Videos Grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {videos.length === 0 ? (
-                    <div className="col-span-full py-12 text-center bg-white border-4 border-dashed rounded-3xl">
-                        <Loader2 size={48} className="animate-spin mx-auto text-gray-300 mb-4" />
-                        <p className="font-heading font-bold text-gray-400 text-xl">Fetching your videos...</p>
+                {filteredVideos.length === 0 ? (
+                    <div className="col-span-full py-20 text-center bg-white border-4 border-dashed border-gray-100 rounded-[2rem]">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center border-2 border-dark-border/5 mx-auto mb-6">
+                            <Search size={32} className="text-gray-300" />
+                        </div>
+                        <p className="font-heading font-black text-gray-400 text-2xl mb-2">
+                            {searchQuery ? `No videos matching "${searchQuery}"` : "No videos found"}
+                        </p>
+                        <p className="text-gray-400 font-bold">Try searching for something else or sync your channel.</p>
                     </div>
                 ) : (
-                    videos.map((video) => (
+                    filteredVideos.map((video) => (
                         <Link href={`/dashboard/report/${video.id}`} key={video.id} className="block group">
                             <Card hoverLift className="flex flex-col h-full bg-white transition-all overflow-hidden group-hover:-translate-y-1">
                                 <div
