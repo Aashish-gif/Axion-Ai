@@ -22,6 +22,12 @@
   --color-gray-900: #111827;
   --color-gray-950: #030712;
 
+  /* Explicit HEX for base colors to avoid oklab/oklch */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
   /* Theme Colors in HEX for html2canvas compatibility */
   --color-green-50: #F0FDF4;
   --color-green-100: #DCFCE7;
