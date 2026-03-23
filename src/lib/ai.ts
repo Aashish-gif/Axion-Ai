@@ -32,8 +32,9 @@ Return ONLY a JSON object with the following structure:
 }
 
 Guidelines:
+- If NO comments are provided (Comments: []), generate the report based strictly on the video Title and Stats (views, likes). Mention that the feedback is based on performance trends.
 - Be specific: Mention specific topics or feedback from the comments.
-- Sentiment: Base the score strictly on comment tone.
+- Sentiment: Base the score strictly on comment tone. If no comments, use a neutral/starting score (70).
 - Ideas: If people ask "how to", "why", or "more about X", base the next video idea on that.
 - Diversity: Ensure the report feels custom-made for the video title and content.
 `;
