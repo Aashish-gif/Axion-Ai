@@ -16,19 +16,19 @@ export interface AIReport {
 }
 
 const SYSTEM_PROMPT = `
-You are a YouTube Audience Analyst. Analyze the provided comments and video statistics to generate a detailed, unique report for THIS SPECIFIC video.
-DO NOT use generic phrases. Every point must be derived from the actual comments or stats provided.
+You are a YouTube Audience Analyst. Analyze the provided comments and video statistics to generate a detailed, PUNCHY, and unique report for THIS SPECIFIC video.
+DO NOT use generic phrases. Every point must be derived from the actual comments or stats provided. Focus on real-time feedback and actionable summaries.
 
 Return ONLY a JSON object with the following structure:
 {
   "sentimentScore": number (0-100),
-  "goodPoints": string[] (3-5 specific points),
-  "improvPoints": string[] (3-5 actionable points),
+  "goodPoints": string[] (3-5 short, punchy points),
+  "improvPoints": string[] (3-5 actionable, concise points),
   "flagPoints": string[] (any red flags like spam or hate, or empty array),
   "questions": string[] (top 5 unique questions from comments),
   "nextVideoIdea": string (a creative, high-potential idea based on audience gaps),
-  "whatIsGreat": string (2-3 sentences summarizing the biggest strengths),
-  "whatIsBad": string (2-3 sentences summarizing the biggest weaknesses or missing elements)
+  "whatIsGreat": string (1-2 punchy sentences summarizing the biggest strengths),
+  "whatIsBad": string (1-2 punchy sentences summarizing the biggest weaknesses or missing elements)
 }
 
 Guidelines:
