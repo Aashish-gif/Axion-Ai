@@ -2,12 +2,41 @@
 
 import React from 'react';
 import { ChannelSwitcher } from './ChannelSwitcher';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, LogOut } from 'lucide-react';
+import { useSearch } from '@/context/SearchContext';
+import { useRouter } from 'next/navigation';
 
 export function TopBar() {
+    const router = useRouter();
     const [userName, setUserName] = React.useState("");
     const [userEmail, setUserEmail] = React.useState("");
     const [showProfile, setShowProfile] = React.useState(false);
+    const [loggingOut, setLoggingOut] = React.useState(false);
+
+    const handleLogout = async () => {
+        setLoggingOut(true);
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+            router.push("/auth");
+            router.refresh();
+        } catch {
+            setLoggingOut(false);
+        }
+    };
+
+    const { searchQuery, setSearchQuery } = useSearch();
+    const [inputValue, setInputValue] = React.useState(searchQuery);
+
+    // Debounce search
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+            setSearchQuery(inputValue);
+        }, 300);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [inputValue, setSearchQuery]);
 
     React.useEffect(() => {
         async function fetchUser() {
@@ -39,6 +68,8 @@ export function TopBar() {
                     <input 
                         type="text" 
                         placeholder="Search videos, ideas, or comments..."
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
                         suppressHydrationWarning
                         className="w-full pl-11 pr-4 py-2.5 bg-white border-[3px] border-dark-border rounded-xl font-medium text-dark-border placeholder:text-gray-400 outline-none transition-all focus:border-accent-red focus:shadow-[0_0_0_4px_rgba(255,59,59,0.1)]"
                     />
@@ -72,7 +103,14 @@ export function TopBar() {
                             </div>
                             <div className="space-y-1">
                                 <button className="w-full text-left px-3 py-2 rounded-lg font-bold text-dark-border hover:bg-gray-50 transition-colors">Profile Settings</button>
-                                <button className="w-full text-left px-3 py-2 rounded-lg font-bold text-red-600 hover:bg-red-50 transition-colors">Sign Out</button>
+                                <button 
+                                    onClick={handleLogout}
+                                    disabled={loggingOut}
+                                    className="w-full text-left px-3 py-2 rounded-lg font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                >
+                                    <LogOut size={16} />
+                                    {loggingOut ? "Signing out..." : "Sign Out"}
+                                </button>
                             </div>
                         </div>
                     )}
