@@ -11,22 +11,27 @@ export function Sidebar() {
     const [userName, setUserName] = useState("");
     const [userInitials, setUserInitials] = useState("");
     const [loggingOut, setLoggingOut] = useState(false);
+    const [firstVideoId, setFirstVideoId] = useState<string>("1");
 
     const navItems = [
         { label: "Dashboard", emoji: "📊", href: "/dashboard" },
         { label: "Comments", emoji: "💬", href: "/dashboard/comments" },
-        { label: "Video Reports", emoji: "🎬", href: "/dashboard/report/1", notification: true },
+        { label: "Video Reports", emoji: "🎬", href: `/dashboard/report/${firstVideoId}`, notification: true },
         { label: "Idea Factory", emoji: "💡", href: "/dashboard/ideas" },
         { label: "Settings", emoji: "⚙️", href: "/dashboard/settings" },
     ];
 
     // Fetch user info on mount
     useEffect(() => {
-        async function fetchUser() {
+        async function fetchInitialData() {
             try {
-                const res = await fetch("/api/auth/me");
-                if (res.ok) {
-                    const data = await res.json();
+                const [userRes, videosRes] = await Promise.all([
+                    fetch("/api/auth/me"),
+                    fetch("/api/youtube/videos")
+                ]);
+
+                if (userRes.ok) {
+                    const data = await userRes.json();
                     setUserName(data.user.name);
                     const parts = data.user.name.split(" ");
                     const initials = parts.length >= 2
@@ -34,11 +39,18 @@ export function Sidebar() {
                         : data.user.name.substring(0, 2).toUpperCase();
                     setUserInitials(initials);
                 }
+
+                if (videosRes.ok) {
+                    const data = await videosRes.json();
+                    if (data.videos && data.videos.length > 0) {
+                        setFirstVideoId(data.videos[0].id);
+                    }
+                }
             } catch {
-                // Silently fail — middleware will handle redirect if not authenticated
+                // Silently fail
             }
         }
-        fetchUser();
+        fetchInitialData();
     }, []);
 
     const handleLogout = async () => {
