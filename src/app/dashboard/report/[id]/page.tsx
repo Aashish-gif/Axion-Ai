@@ -292,14 +292,21 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 <div className="mb-10">
                     <h2 className="font-heading font-black text-2xl mb-6">Question Bank</h2>
                     <div className="max-h-[320px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                        {video.questions.map((q: string, i: number) => (
-                            <Card key={i} bg="white" className="p-5 flex items-start gap-4">
-                                <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center border-2 border-dark-border shrink-0 text-xl shadow-[2px_2px_0_#111827]">
-                                    ❓
-                                </div>
-                                <div className="font-bold text-lg pt-1">{q}</div>
-                            </Card>
-                        ))}
+                        {video.questions.length > 0 ? (
+                            video.questions.map((q: string, i: number) => (
+                                <Card key={i} bg="white" className="p-5 flex items-start gap-4">
+                                    <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center border-2 border-dark-border shrink-0 text-xl shadow-[2px_2px_0_#111827]">
+                                        ❓
+                                    </div>
+                                    <div className="font-bold text-lg pt-1">{q}</div>
+                                </Card>
+                            ))
+                        ) : (
+                            <div className="py-12 text-center bg-white border-4 border-dashed rounded-3xl">
+                                <p className="font-heading font-bold text-gray-400 text-xl">No specific questions found in comments.</p>
+                                <p className="text-gray-400 font-medium">Try syncing again later if you get new engagement!</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
