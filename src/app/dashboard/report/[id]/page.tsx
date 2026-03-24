@@ -77,7 +77,31 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 useCORS: true,
                 allowTaint: true,
                 logging: false,
-                backgroundColor: "#FFF9F0", // Explicit HEX for background
+                backgroundColor: "#FFF9F0",
+                onclone: (clonedDoc) => {
+                    // Fix for html2canvas oklab/oklch error in Tailwind 4
+                    const elements = clonedDoc.getElementsByTagName("*");
+                    for (let i = 0; i < elements.length; i++) {
+                        const el = elements[i] as HTMLElement;
+                        const style = window.getComputedStyle(el);
+                        
+                        // Check common properties for oklab/oklch
+                        ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'stroke', 'fill'].forEach(prop => {
+                            const val = (el.style as any)[prop] || style.getPropertyValue(prop);
+                            if (val && (val.includes('oklch') || val.includes('oklab'))) {
+                                // Fallback to a safe color if oklch/oklab is detected
+                                if (prop === 'boxShadow') {
+                                    el.style.boxShadow = 'none';
+                                } else {
+                                    // Simply stripping it often works as html2canvas will use the inherited or default color
+                                    // Or we can try to force a hex if we know it (e.g. for dark border)
+                                    if (val.includes('oklch(0.18 0.02 261.69)')) el.style.setProperty(prop, '#111827', 'important');
+                                    else el.style.setProperty(prop, 'inherit', 'important');
+                                }
+                            }
+                        });
+                    }
+                }
             });
 
             // Restore the download button
@@ -315,20 +339,29 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                             ))}
                         </ul>
                     </Card>
-                    <Card className="p-6 bg-[#FFE4E4]">
-                        <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">🚩 Red Flags</h3>
+                    <Card className={`p-6 ${video.flagPoints.length > 0 ? 'bg-[#FFF0F0] border-red-500 animate-pulse-subtle' : 'bg-[#FFE4E4]'}`}>
+                        <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">
+                            {video.flagPoints.length > 0 ? '🚩 CRITICAL RED FLAGS' : '🚩 Red Flags'}
+                        </h3>
                         <ul className="space-y-3">
                             {video.flagPoints.length > 0 ? (
                                 video.flagPoints.map((pt: string, i: number) => (
-                                    <li key={i} className="flex items-start gap-2 font-medium">
-                                        <div className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0 border border-dark-border"></div>
+                                    <li key={i} className="flex items-start gap-2 font-bold text-red-700">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-600 mt-1.5 shrink-0 border-2 border-white shadow-sm"></div>
                                         {pt}
                                     </li>
                                 ))
                             ) : (
-                                <li className="font-medium text-gray-500 italic">No red flags detected! 🎉</li>
+                                <li className="font-medium text-gray-500 italic flex items-center gap-2">
+                                    <span>Everything looks solid! No major red flags found. 🎉</span>
+                                </li>
                             )}
                         </ul>
+                        {video.flagPoints.length > 0 && (
+                            <div className="mt-6 p-3 bg-white/50 rounded-xl border border-red-200 text-xs font-bold text-red-600">
+                                ⚠️ These points are significantly hurting your retention. Fix these first!
+                            </div>
+                        )}
                     </Card>
                 </div>
 
