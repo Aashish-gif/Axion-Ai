@@ -23,6 +23,7 @@ interface VideoReport {
     nextVideoIdea: string;
     whatIsGreat: string;
     whatIsBad: string;
+    overallSummary: string;
     metrics: {
         views: string;
         likes: string;
@@ -37,6 +38,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     const resolvedParams = use(params);
     const [video, setVideo] = useState<VideoReport | null>(null);
     const [loading, setLoading] = useState(true);
+    const [downloading, setDownloading] = useState(false);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -56,20 +58,45 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     }, [resolvedParams.id]);
 
     const handleDownloadPDF = async () => {
-        const html2canvas = (await import("html2canvas")).default;
-        const jsPDF = (await import("jspdf")).default;
+        if (downloading) return;
+        setDownloading(true);
 
-        const element = document.getElementById("report-content");
-        if (!element || !video) return;
+        try {
+            const html2canvas = (await import("html2canvas")).default;
+            const jsPDF = (await import("jspdf")).default;
 
-        const canvas = await html2canvas(element, { scale: 2 });
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            const element = document.getElementById("report-content");
+            if (!element || !video) return;
 
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`${video.title}-report.pdf`);
+            // Temporarily hide the download button during capture
+            const downloadBtn = element.querySelector('[data-pdf-ignore]');
+            if (downloadBtn) (downloadBtn as HTMLElement).style.display = 'none';
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                backgroundColor: "#FFF9F0", // Explicit HEX for background
+            });
+
+            // Restore the download button
+            if (downloadBtn) (downloadBtn as HTMLElement).style.display = 'flex';
+
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            const safeTitle = video.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+            pdf.save(`${safeTitle}-report.pdf`);
+        } catch (err: any) {
+            console.error("PDF Generation failed:", err);
+            alert(`Failed to generate PDF: ${err.message || 'Unknown error'}`);
+        } finally {
+            setDownloading(false);
+        }
     };
 
     if (loading) {
@@ -120,12 +147,29 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                             <Badge variant="dark" className="bg-white !text-dark-border !shadow-none">
                                 {video.commentCount.toLocaleString()} Comments Analyzed
                             </Badge>
-                            <Button variant="dark" className="ml-auto !py-1.5 !px-4 text-sm flex items-center gap-2" onClick={handleDownloadPDF}>
-                                <Download size={16} /> Download PDF Report
+                            <Button 
+                                variant="dark" 
+                                className="ml-auto !py-1.5 !px-4 text-sm flex items-center gap-2 disabled:opacity-50" 
+                                onClick={handleDownloadPDF}
+                                disabled={downloading}
+                                data-pdf-ignore
+                            >
+                                {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                                {downloading ? "Generating PDF..." : "Download PDF Report"}
                             </Button>
                         </div>
                     </div>
                 </div>
+
+                {/* Overall Summary Row */}
+                <Card bg="white" className="p-8 border-4 border-dark-border mb-10 shadow-solid">
+                    <h2 className="font-heading font-black text-2xl mb-4 flex items-center gap-2">
+                        📑 Deep Dive Summary
+                    </h2>
+                    <p className="text-lg font-medium leading-relaxed text-dark-border/80 italic">
+                        "{video.overallSummary}"
+                    </p>
+                </Card>
 
                 {/* Two-column grid */}
                 <div className="grid md:grid-cols-2 gap-8 mb-10">
