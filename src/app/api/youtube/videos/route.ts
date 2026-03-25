@@ -14,7 +14,10 @@ export async function GET() {
     const token = cookieStore.get("axion_auth")?.value;
 
     if (!token) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+      return NextResponse.json({ 
+        error: "Not authenticated",
+        message: "Please log in to access your videos"
+      }, { status: 401 });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
@@ -22,8 +25,19 @@ export async function GET() {
     await connectDB();
     const user = await User.findById(decoded.userId.toString());
 
-    if (!user || !user.youtubeAccessToken) {
-      return NextResponse.json({ error: "YouTube not connected" }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ 
+        error: "User not found",
+        message: "Please log in again"
+      }, { status: 404 });
+    }
+
+    if (!user.youtubeAccessToken) {
+      return NextResponse.json({ 
+        error: "YouTube not connected",
+        message: "Please connect your YouTube channel first",
+        youtubeConnected: false
+      }, { status: 400 });
     }
 
     // 1. Get uploads playlist
