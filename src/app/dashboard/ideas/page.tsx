@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { Lightbulb, TrendingUp, Target, Clock, BarChart3, Sparkles, AlertCircle, CheckCircle2, Loader2, Filter } from "lucide-react";
 
 interface VideoIdea {
@@ -205,10 +206,8 @@ export default function IdeasPage() {
             {/* Results Grid */}
             {isGenerating ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px]">
-                    <Loader2 size={64} className="animate-spin text-accent-red mb-4" />
-                    <p className="font-heading font-black text-2xl text-dark-border mb-2">Analyzing Market Trends...</p>
-                    <p className="font-medium text-gray-600">Generating data-driven video ideas based on:</p>
-                    <ul className="mt-4 space-y-2 text-left">
+                    <LoadingScreen message="Analyzing Market Trends..." variant="content" fullScreen={false} />
+                    <ul className="mt-8 space-y-2 text-left bg-white p-6 rounded-2xl border-[3px] border-dark-border shadow-[4px_5px_0_#111827]">
                         <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" /> Current trending topics</li>
                         <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" /> Content gap analysis</li>
                         <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" /> Competition levels</li>

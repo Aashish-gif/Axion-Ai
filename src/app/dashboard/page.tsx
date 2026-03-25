@@ -252,7 +252,7 @@ export default function DashboardHome() {
 
     // Show loading screen during page transition
     if (pageTransition || (loading && !connected)) {
-        return <LoadingScreen message="Loading your dashboard..." />;
+        return <LoadingScreen message="Loading your dashboard..." variant="youtube" />;
     }
 
     if (loading) {
