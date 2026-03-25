@@ -14,6 +14,10 @@ export interface IUser extends Document {
   createdAt: Date;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  // Notification preferences
+  emailNotifications?: boolean;
+  weeklyDigest?: boolean;
+  negativeSentimentAlerts?: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -46,6 +50,9 @@ const UserSchema = new Schema<IUser>({
   youtubeChannelThumbnail: String,
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  emailNotifications: { type: Boolean, default: true },
+  weeklyDigest: { type: Boolean, default: true },
+  negativeSentimentAlerts: { type: Boolean, default: false },
   createdAt: {
     type: Date,
     default: Date.now,
