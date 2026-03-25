@@ -43,6 +43,12 @@ interface VideoReport {
         shares: string;
         watchTime: string;
         downloads: string;
+        // NEW: Advanced analytics metrics
+        impressions?: number;
+        ctr?: string;
+        subscribersGained?: number;
+        avgViewDuration?: string;
+        comments?: number;
     };
 }
 
@@ -389,6 +395,175 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                         </p>
                     </Card>
                 </div>
+
+                {/* ===== NEW SECTION: ANALYTICS METRICS ===== */}
+                {(video.metrics.impressions !== undefined || video.metrics.ctr || video.metrics.subscribersGained || video.metrics.avgViewDuration) && (
+                    <div className="mb-10">
+                        <h2 className="font-heading font-black text-2xl mb-6 flex items-center gap-2">
+                            📊 Video Analytics Performance
+                        </h2>
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {video.metrics.impressions !== undefined && (
+                                <Card bg="mint" className="p-5 border-4 border-dark-border shadow-solid">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">👁️</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">Impressions</div>
+                                            <div className="font-heading font-black text-2xl text-dark-border">
+                                                {typeof video.metrics.impressions === 'number' 
+                                                    ? video.metrics.impressions.toLocaleString() 
+                                                    : video.metrics.impressions}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">Times thumbnail was shown</div>
+                                </Card>
+                            )}
+
+                            {video.metrics.ctr && (
+                                <Card bg="yellow" className="p-5 border-4 border-dark-border shadow-solid">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">🎯</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">CTR</div>
+                                            <div className="font-heading font-black text-2xl text-dark-border">
+                                                {video.metrics.ctr}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">Click-through rate</div>
+                                </Card>
+                            )}
+
+                            {video.metrics.watchTime && (
+                                <Card bg="blue" className="p-5 border-4 border-dark-border shadow-solid">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">⏱️</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">Watch Time</div>
+                                            <div className="font-heading font-black text-xl text-dark-border">
+                                                {video.metrics.watchTime}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">Total hours watched</div>
+                                </Card>
+                            )}
+
+                            {video.metrics.avgViewDuration && (
+                                <Card bg="red" className="p-5 border-4 border-dark-border shadow-solid">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">📈</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">Avg Duration</div>
+                                            <div className="font-heading font-black text-xl text-dark-border">
+                                                {video.metrics.avgViewDuration}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">Average view duration</div>
+                                </Card>
+                            )}
+
+                            {video.metrics.subscribersGained !== undefined && (
+                                <Card bg="lavender" className="p-5 border-4 border-dark-border shadow-solid sm:col-span-2 lg:col-span-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">❤️</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">Subscribers Gained</div>
+                                            <div className="font-heading font-black text-2xl text-dark-border">
+                                                {typeof video.metrics.subscribersGained === 'number' 
+                                                    ? video.metrics.subscribersGained.toLocaleString() 
+                                                    : video.metrics.subscribersGained}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">New subscribers from this video</div>
+                                </Card>
+                            )}
+
+                            {video.metrics.views && (
+                                <Card bg="white" className="p-5 border-4 border-dark-border shadow-solid sm:col-span-2 lg:col-span-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">▶️</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">Total Views</div>
+                                            <div className="font-heading font-black text-2xl text-dark-border">
+                                                {parseInt(video.metrics.views).toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">Lifetime views</div>
+                                </Card>
+                            )}
+
+                            {video.metrics.likes && (
+                                <Card bg="white" className="p-5 border-4 border-dark-border shadow-solid sm:col-span-2 lg:col-span-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">👍</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">Likes</div>
+                                            <div className="font-heading font-black text-2xl text-dark-border">
+                                                {parseInt(video.metrics.likes).toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">Total likes</div>
+                                </Card>
+                            )}
+
+                            {video.metrics.comments && (
+                                <Card bg="white" className="p-5 border-4 border-dark-border shadow-solid sm:col-span-2 lg:col-span-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className="text-3xl">💬</span>
+                                        <div>
+                                            <div className="text-xs font-black text-gray-500 uppercase">Comments</div>
+                                            <div className="font-heading font-black text-2xl text-dark-border">
+                                                {video.metrics.comments.toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs font-bold text-gray-600">Total comments</div>
+                                </Card>
+                            )}
+                        </div>
+
+                        {/* Analytics Insights Card */}
+                        <Card bg="lavender" className="mt-4 p-6 border-4 border-dark-border shadow-solid">
+                            <h3 className="font-heading font-black text-lg mb-3 flex items-center gap-2">
+                                💡 Performance Insights
+                            </h3>
+                            <ul className="space-y-2 text-sm font-medium text-dark-border/80">
+                                {video.metrics.ctr && (
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-green-600 font-black">✓</span>
+                                        <span>
+                                            <strong>CTR Analysis:</strong> Your {video.metrics.ctr} CTR is {parseFloat(video.metrics.ctr) >= 4 ? 'above' : 'below'} industry average (4-5%). 
+                                            {parseFloat(video.metrics.ctr) < 4 ? ' Consider testing new thumbnails/titles.' : ' Great thumbnail performance!'}
+                                        </span>
+                                    </li>
+                                )}
+                                {video.metrics.avgViewDuration && video.metrics.watchTime && (
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-green-600 font-black">✓</span>
+                                        <span>
+                                            <strong>Retention:</strong> Average watch time of {video.metrics.avgViewDuration} shows {parseInt(video.metrics.avgViewDuration) > 120 ? 'strong' : 'room for improvement in'} audience engagement.
+                                        </span>
+                                    </li>
+                                )}
+                                {video.metrics.subscribersGained !== undefined && video.metrics.views && (
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-green-600 font-black">✓</span>
+                                        <span>
+                                            <strong>Conversion Rate:</strong> {((video.metrics.subscribersGained / parseInt(video.metrics.views)) * 100).toFixed(2)}% of viewers subscribed ({video.metrics.subscribersGained} total). 
+                                            {((video.metrics.subscribersGained / parseInt(video.metrics.views)) * 100) >= 0.7 ? ' Excellent conversion!' : ' Add stronger CTAs to improve.'}
+                                        </span>
+                                    </li>
+                                )}
+                            </ul>
+                        </Card>
+                    </div>
+                )}
 
                 {/* ===== SECTION 3: VIDEO CONTENT ANALYSIS ===== */}
                 {video.videoSummary && (
