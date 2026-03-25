@@ -49,6 +49,17 @@ interface VideoReport {
     nextVideoIdea: string;
 }
 
+interface Notification {
+    id: string;
+    type: 'success' | 'warning' | 'info' | 'urgent';
+    title: string;
+    message: string;
+    icon: string;
+    timestamp: Date;
+    videoId?: string;
+    metric?: string;
+}
+
 export default function DashboardHome() {
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
@@ -56,6 +67,7 @@ export default function DashboardHome() {
     const [userName, setUserName] = useState("");
     const [videos, setVideos] = useState<YouTubeVideo[]>([]);
     const [stats, setStats] = useState<ChannelStats | null>(null);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const { searchQuery } = useSearch();
 
     const fetchData = async () => {
@@ -67,6 +79,9 @@ export default function DashboardHome() {
             if (vRes.ok) {
                 const vData = await vRes.json();
                 setVideos(vData.videos);
+                
+                // Generate dynamic notifications based on video data
+                generateNotifications(vData.videos, stats);
             }
             if (sRes.ok) {
                 const sData = await sRes.json();
@@ -75,6 +90,112 @@ export default function DashboardHome() {
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
         }
+    };
+
+    const generateNotifications = (videos: YouTubeVideo[], currentStats: ChannelStats | null) => {
+        const newNotifications: Notification[] = [];
+        
+        // Check for high-performing videos
+        videos.forEach(video => {
+            // Viral performance alert
+            if (video.sentimentScore >= 90) {
+                newNotifications.push({
+                    id: `viral-${video.id}`,
+                    type: 'success',
+                    title: '🔥 Video Going Viral!',
+                    message: `"${video.title.substring(0, 50)}..." has a ${video.sentimentScore}% positive sentiment! Consider pinning a comment or creating a follow-up.`,
+                    icon: '🚀',
+                    timestamp: new Date(),
+                    videoId: video.id,
+                    metric: `Sentiment: ${video.sentimentScore}%`
+                });
+            }
+            
+            // High engagement alert
+            if (video.commentCount >= 500) {
+                newNotifications.push({
+                    id: `engagement-${video.id}`,
+                    type: 'info',
+                    title: '💬 High Engagement Detected',
+                    message: `Your video is generating lots of discussion (${video.commentCount.toLocaleString()} comments). Great community interaction!`,
+                    icon: '💡',
+                    timestamp: new Date(),
+                    videoId: video.id,
+                    metric: `${video.commentCount.toLocaleString()} comments`
+                });
+            }
+            
+            // Needs attention alert
+            if (video.sentimentScore < 60 && video.commentCount > 50) {
+                newNotifications.push({
+                    id: `attention-${video.id}`,
+                    type: 'warning',
+                    title: '⚠️ Video Needs Attention',
+                    message: `Lower than average sentiment score (${video.sentimentScore}%). Review comments to understand audience concerns.`,
+                    icon: '🎯',
+                    timestamp: new Date(),
+                    videoId: video.id,
+                    metric: `Sentiment: ${video.sentimentScore}%`
+                });
+            }
+        });
+        
+        // Subscriber milestone check
+        if (currentStats?.totalSubscribers) {
+            const subs = currentStats.totalSubscribers;
+            const milestones = [1000, 5000, 10000, 50000, 100000];
+            
+            milestones.forEach(milestone => {
+                if (subs >= milestone && subs < milestone + 100) {
+                    newNotifications.push({
+                        id: `milestone-${milestone}`,
+                        type: 'success',
+                        title: '🎉 Subscriber Milestone!',
+                        message: `Congratulations! You just crossed ${milestone.toLocaleString()} subscribers! Keep up the amazing work!`,
+                        icon: '🏆',
+                        timestamp: new Date(),
+                        metric: `${subs.toLocaleString()} subscribers`
+                    });
+                }
+            });
+        }
+        
+        // Trending sentiment alert
+        if (currentStats?.avgSentiment && parseFloat(currentStats.avgSentiment) >= 85) {
+            newNotifications.push({
+                id: 'sentiment-trend',
+                type: 'success',
+                title: '❤️ Audience Loves Your Content',
+                message: `Your average sentiment is ${currentStats.avgSentiment} - that's exceptional! Your audience is highly engaged and satisfied.`,
+                icon: '✨',
+                timestamp: new Date(),
+                metric: `Avg Sentiment: ${currentStats.avgSentiment}`
+            });
+        }
+        
+        // Upload consistency reminder
+        const recentVideos = videos.filter(v => v.commentCount > 0);
+        if (recentVideos.length < 3) {
+            newNotifications.push({
+                id: 'consistency-reminder',
+                type: 'info',
+                title: '📹 Upload Consistency Tip',
+                message: 'Upload at least 1-2 videos per week to maintain momentum and grow faster. Your audience is waiting!',
+                icon: '📅',
+                timestamp: new Date()
+            });
+        }
+        
+        // Sort by urgency and recency
+        const sortedNotifications = newNotifications.sort((a, b) => {
+            const urgencyOrder = { urgent: 0, warning: 1, info: 2, success: 3 };
+            if (urgencyOrder[a.type] !== urgencyOrder[b.type]) {
+                return urgencyOrder[a.type] - urgencyOrder[b.type];
+            }
+            return b.timestamp.getTime() - a.timestamp.getTime();
+        });
+        
+        setNotifications(sortedNotifications.slice(0, 10)); // Max 10 notifications
     };
 
     useEffect(() => {
@@ -218,6 +339,73 @@ export default function DashboardHome() {
 
     return (
         <div className="animate-in fade-in duration-500">
+            {/* Dynamic Notifications Section */}
+            {notifications.length > 0 && (
+                <div className="mb-8 space-y-3">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="font-heading font-black text-xl text-dark-border flex items-center gap-2">
+                            🔔 Live Notifications
+                        </h2>
+                        <Button 
+                            variant="secondary" 
+                            onClick={() => setNotifications([])}
+                            className="!py-1 !px-3 text-sm"
+                        >
+                            Clear All
+                        </Button>
+                    </div>
+                    
+                    <div className="grid gap-3">
+                        {notifications.map((notification) => {
+                            const bgColors = {
+                                success: 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
+                                warning: 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200',
+                                info: 'bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200',
+                                urgent: 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200'
+                            };
+                            
+                            return (
+                                <Card 
+                                    key={notification.id} 
+                                    className={`p-5 border-[3px] transition-all hover:-translate-y-0.5 hover:shadow-lg cursor-pointer ${bgColors[notification.type]}`}
+                                    onClick={() => notification.videoId && (window.location.href = `/dashboard/report/${notification.videoId}`)}
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className="text-4xl shrink-0">{notification.icon}</div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <h3 className="font-heading font-black text-lg text-dark-border truncate pr-4">
+                                                    {notification.title}
+                                                </h3>
+                                                <span className="text-xs font-bold text-gray-500 shrink-0">
+                                                    {notification.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm font-medium text-gray-700 mb-2 leading-relaxed">
+                                                {notification.message}
+                                            </p>
+                                            {notification.metric && (
+                                                <Badge 
+                                                    variant={notification.type === 'success' ? 'green' : notification.type === 'warning' ? 'red' : 'dark'} 
+                                                    className="text-xs"
+                                                >
+                                                    {notification.metric}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        {notification.videoId && (
+                                            <div className="hidden sm:flex items-center text-accent-red font-bold text-sm shrink-0">
+                                                View →
+                                            </div>
+                                        )}
+                                    </div>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+            
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
                 <div>
                     <h1 className="font-heading font-black text-3xl md:text-[32px] text-dark-border mb-1">
