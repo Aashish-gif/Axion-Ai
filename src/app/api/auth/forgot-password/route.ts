@@ -39,7 +39,20 @@ export async function POST(request: Request) {
     // Create reset URL
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${resetToken}`;
 
+    // Verify environment variables
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.error("Email configuration missing:", {
+        hasUser: !!process.env.EMAIL_USER,
+        hasPassword: !!process.env.EMAIL_PASSWORD,
+        service: process.env.EMAIL_SERVICE || "gmail"
+      });
+      return NextResponse.json({ 
+        error: "Email service not configured. Please contact administrator." 
+      }, { status: 500 });
+    }
+
     // Configure Nodemailer transporter
+    console.log("Configuring email transporter...");
     const transporter = nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
@@ -47,6 +60,15 @@ export async function POST(request: Request) {
         pass: process.env.EMAIL_PASSWORD,
       },
     });
+
+    // Verify transporter connection
+    try {
+      await transporter.verify();
+      console.log("✓ Email transporter verified successfully");
+    } catch (verifyError) {
+      console.error("✗ Email transporter verification failed:", verifyError);
+      throw new Error(`Email server connection failed: ${(verifyError as Error).message}`);
+    }
 
     // Email options
     const mailOptions = {
@@ -131,8 +153,10 @@ export async function POST(request: Request) {
       `,
     };
 
+    console.log(`Sending password reset email to: ${email}`);
     // Send email
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✓ Email sent successfully:", info.messageId);
 
     return NextResponse.json({ 
       message: "If an account exists with that email, you will receive a password reset link shortly." 
@@ -140,6 +164,15 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error("Forgot password error:", error);
-    return NextResponse.json({ error: "Failed to process request" }, { status: 500 });
+    console.error("Error details:", {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      code: (error as any).code,
+      command: (error as any).command
+    });
+    return NextResponse.json({ 
+      error: "Failed to process request", 
+      details: (error as Error).message 
+    }, { status: 500 });
   }
 }
