@@ -133,7 +133,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
     // Show loading screen during page transition
     if (pageTransition || loading) {
-        return <LoadingScreen message="Generating your deep dive report..." />;
+        return <LoadingScreen message="Generating your deep dive report..." variant="youtube" />;
     }
 
     if (error || !video) {
