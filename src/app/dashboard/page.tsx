@@ -85,6 +85,9 @@ export default function DashboardHome() {
                 if (userRes.ok) {
                     const userData = await userRes.json();
                     setUserName(userData.user.name);
+                } else {
+                    // User is not logged in at all
+                    console.warn("User not authenticated, redirecting to login...");
                 }
 
                 // Fetch YouTube Status
@@ -92,6 +95,9 @@ export default function DashboardHome() {
                 if (res.ok) {
                     const data = await res.json();
                     setConnected(data.connected);
+                } else if (res.status === 401) {
+                    // Not authenticated - redirect to login
+                    console.warn("Not authenticated");
                 }
             } catch (error) {
                 console.error("Failed to check status:", error);
@@ -129,27 +135,42 @@ export default function DashboardHome() {
                     <h1 className="font-heading font-black text-3xl md:text-[32px] text-dark-border mb-1">
                         Hey, {userName.split(' ')[0] || "Creator"}! 👋
                     </h1>
-                    <p className="text-gray-500 font-bold">Your YouTube channel is not connected.</p>
+                    <p className="text-gray-500 font-bold">
+                        {!userName ? "Please log in to continue." : "Your YouTube channel is not connected."}
+                    </p>
                 </div>
 
                 <Card bg="lavender" className="p-12 flex flex-col items-center text-center border-dashed border-4">
                     <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-[3px] border-dark-border shadow-[4px_4px_0_#111827] mb-8">
                         <Youtube size={48} className="text-red-600" fill="currentColor" />
                     </div>
-                    <h2 className="font-heading font-black text-3xl text-dark-border mb-4">Connect Your Channel!</h2>
+                    <h2 className="font-heading font-black text-3xl text-dark-border mb-4">
+                        {!userName ? "Welcome! Let's Get Started" : "Connect Your Channel!"}
+                    </h2>
                     <p className="text-gray-600 font-bold max-w-md mb-10 leading-relaxed">
-                        To see what your audience is saying, read comments, and get AI insights, you need to connect your YouTube channel first.
+                        {!userName 
+                            ? "You need to be logged in before connecting your YouTube channel. Please log in first."
+                            : "To see what your audience is saying, read comments, and get AI insights, you need to connect your YouTube channel first."
+                        }
                     </p>
                     
-                    <a href="/api/auth/youtube">
-                        <Button variant="primary" className="flex items-center gap-3 text-lg px-8 py-6">
-                            <Play size={20} fill="currentColor" /> Connect YouTube Channel
-                        </Button>
-                    </a>
+                    {!userName ? (
+                        <Link href="/auth">
+                            <Button variant="primary" className="flex items-center gap-3 text-lg px-8 py-6">
+                                Login / Register
+                            </Button>
+                        </Link>
+                    ) : (
+                        <a href="/api/auth/youtube">
+                            <Button variant="primary" className="flex items-center gap-3 text-lg px-8 py-6">
+                                <Play size={20} fill="currentColor" /> Connect YouTube Channel
+                            </Button>
+                        </a>
+                    )}
 
                     <div className="mt-8 flex items-center gap-2 text-sm font-bold text-gray-500 bg-white/50 px-4 py-2 rounded-full border-2 border-dark-border/10">
                         <AlertCircle size={16} />
-                        <span>Read-only access to your comments and videos</span>
+                        <span>{!userName ? "Create an account or login to continue" : "Read-only access to your comments and videos"}</span>
                     </div>
                 </Card>
             </div>
