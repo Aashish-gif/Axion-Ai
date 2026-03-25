@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ArrowLeft, Download, Loader2, AlertCircle } from "lucide-react";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 interface VideoReport {
     id: string;
@@ -58,6 +59,15 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
     const [error, setError] = useState("");
+    const [pageTransition, setPageTransition] = useState(true);
+
+    // Page load animation
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setPageTransition(false);
+        }, 700); // 0.7 second page load for reports
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         async function fetchReport() {
@@ -77,8 +87,6 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
     // Removed chat functionality
 
-
-
     const handleDownloadPDF = async () => {
         if (downloading) return;
         setDownloading(true);
@@ -90,7 +98,6 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             const element = document.getElementById("report-content");
             if (!element || !video) return;
 
-            // Temporarily hide the download button during capture
             const downloadBtn = element.querySelector('[data-pdf-ignore]');
             if (downloadBtn) (downloadBtn as HTMLElement).style.display = 'none';
 
@@ -100,212 +107,33 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 allowTaint: true,
                 logging: false,
                 backgroundColor: "#FFF9F0",
-                ignoreElements: (element: Element) => {
-                    // Ignore any elements with oklab in their style
-                    const cssText = (element as HTMLElement).style.cssText;
-                    if (cssText.includes('oklab') || cssText.includes('oklch')) {
-                        console.log('Ignoring element with oklab:', element);
-                        return true;
-                    }
-                    return false;
-                },
-                onclone: (clonedDoc) => {
-                    // CRITICAL: Remove ALL CSS variables and color functions that might contain oklab
-                    const style = clonedDoc.createElement('style');
-                    style.innerHTML = `
-                        * { 
-                            -webkit-print-color-adjust: exact; 
-                            print-color-adjust: exact;
-                            box-sizing: border-box;
-                        }
-                        
-                        /* COMPLETE COLOR RESET - Force EVERYTHING to HEX */
-                        :root {
-                            --color-dark-border: #111827 !important;
-                            --color-accent-red: #FF3B3B !important;
-                            --color-bg-cream: #FFF9F0 !important;
-                            --color-white: #ffffff !important;
-                            --color-black: #000000 !important;
-                            /* Override ALL Tailwind color variables */
-                            --gray-50: #F9FAFB !important;
-                            --gray-100: #F3F4F6 !important;
-                            --gray-200: #E5E7EB !important;
-                            --green-500: #22C55E !important;
-                            --green-600: #16A34A !important;
-                            --yellow-400: #FBBF24 !important;
-                            --red-500: #EF4444 !important;
-                            --red-600: #DC2626 !important;
-                            --blue-200: #BFDBFE !important;
-                            --blue-300: #9CA3AF !important;
-                            --blue-800: #1E40AF !important;
-                            --blue-900: #1E3A8A !important;
-                            --purple-200: #E9D5FF !important;
-                            --purple-300: #D8B4FE !important;
-                            --purple-800: #6B21A8 !important;
-                            --purple-900: #581C87 !important;
-                            --green-100: #DCFCE7 !important;
-                            --green-300: #86EFAC !important;
-                            --green-700: #15803D !important;
-                            --red-100: #FEE2E2 !important;
-                            --red-300: #FCA5A5 !important;
-                            --red-700: #B91C1C !important;
-                        }
-                        
-                        /* NUCLEAR OPTION: Remove ANY color function from ANY property */
-                        * {
-                            background-image: none !important;
-                        }
-                        
-                        [style*="oklch"], [style*="oklab"], [style*="color("] {
-                            all: unset !important;
-                            display: none !important;
-                        }
-                        
-                        /* Force remove oklab from computed styles inline */
-                        .bg-bg-cream { background-color: #FFF9F0 !important; }
-                        .bg-white { background-color: #ffffff !important; }
-                        .bg-gray-50 { background-color: #F9FAFB !important; }
-                        .bg-gray-100 { background-color: #F3F4F6 !important; }
-                        .bg-green-500 { background-color: #22C55E !important; }
-                        .bg-yellow-400 { background-color: #FBBF24 !important; }
-                        .text-dark-border { color: #111827 !important; }
-                        .border-dark-border { border-color: #111827 !important; }
-                        .bg-blue-50 { background-color: #EFF6FF !important; }
-                        .bg-purple-50 { background-color: #FAF5FF !important; }
-                        .bg-red-50 { background-color: #FEF2F2 !important; }
-                        .border-blue-300 { border-color: #93C5FD !important; }
-                        .border-purple-300 { border-color: #D8B4FE !important; }
-                        .border-red-300 { border-color: #FCA5A5 !important; }
-                        .text-blue-900 { color: #1E3A8A !important; }
-                        .text-blue-800 { color: #1E40AF !important; }
-                        .text-purple-900 { color: #581C87 !important; }
-                        .text-purple-800 { color: #6B21A8 !important; }
-                        .text-green-700 { color: #15803D !important; }
-                        .text-red-700 { color: #B91C1C !important; }
-                        
-                        /* Shadows MUST be hex */
-                        .shadow-solid { box-shadow: 5px 6px 0px #111827 !important; }
-                        .shadow-button { box-shadow: 4px 5px 0px #111827 !important; }
-                        
-                        /* PDF Optimization: Better page breaks */
-                        .mb-10, .mb-12 {
-                            page-break-inside: avoid !important;
-                        }
-                        
-                        /* Ensure cards don't break across pages */
-                        [class*="Card"] {
-                            page-break-inside: avoid !important;
-                        }
-                    `;
-                    clonedDoc.head.appendChild(style);
-
-                    // AGGRESSIVE CLEANUP: Process EVERY single element
-                    const elements = clonedDoc.getElementsByTagName("*");
-                    
-                    for (let i = 0; i < elements.length; i++) {
-                        const el = elements[i] as HTMLElement;
-                        
-                        // Check and clean inline styles FIRST
-                        const inlineStyle = el.getAttribute('style');
-                        if (inlineStyle) {
-                            // Replace ANY oklab/oklch/color() function with safe values
-                            let cleanedStyle = inlineStyle
-                                .replace(/oklch\([^)]*\)/gi, '#ffffff')
-                                .replace(/oklab\([^)]*\)/gi, '#111827')
-                                .replace(/color\([^)]*\)/gi, '#111827');
-                            
-                            if (cleanedStyle !== inlineStyle) {
-                                el.setAttribute('style', cleanedStyle);
-                            }
-                        }
-                        
-                        // Now check computed properties and override
-                        const computed = window.getComputedStyle(el);
-                        const propsToCheck = [
-                            'background-color', 'color', 'border-color',
-                            'border-top-color', 'border-right-color', 
-                            'border-bottom-color', 'border-left-color',
-                            'outline-color', 'fill', 'stroke',
-                            'box-shadow', 'text-shadow'
-                        ];
-                        
-                        propsToCheck.forEach(prop => {
-                            const value = computed.getPropertyValue(prop);
-                            
-                            // If we find oklab/oklch, FORCE override it
-                            if (value && (value.includes('oklch') || value.includes('oklab') || value.includes('color('))) {
-                                if (prop.includes('background')) {
-                                    el.style.setProperty(prop, '#ffffff', 'important');
-                                } else if (prop.includes('color') || prop === 'fill' || prop === 'stroke') {
-                                    el.style.setProperty(prop, '#111827', 'important');
-                                } else if (prop.includes('shadow')) {
-                                    el.style.setProperty(prop, 'none', 'important');
-                                }
-                            }
-                        });
-                        
-                        // Special SVG handling
-                        if (el instanceof SVGElement) {
-                            ['fill', 'stroke'].forEach(attr => {
-                                const attrValue = el.getAttribute(attr);
-                                if (attrValue && (attrValue.includes('oklch') || attrValue.includes('oklab'))) {
-                                    el.setAttribute(attr, '#111827');
-                                }
-                            });
-                        }
-                    }
-                    
-                    // FINAL PASS: Remove any remaining CSS variables that might reference oklab
-                    const allStyles = clonedDoc.querySelectorAll('style');
-                    allStyles.forEach(styleEl => {
-                        const originalText = styleEl.textContent;
-                        if (originalText) {
-                            const cleaned = originalText
-                                .replace(/oklch\([^)]*\)/gi, '#ffffff')
-                                .replace(/oklab\([^)]*\)/gi, '#111827')
-                                .replace(/color\([^)]*\)/gi, '#111827');
-                            styleEl.textContent = cleaned;
-                        }
-                    });
-                }
             });
 
-
-            // Restore the download button
             if (downloadBtn) (downloadBtn as HTMLElement).style.display = 'flex';
 
             const imgData = canvas.toDataURL("image/png", 1.0);
-            const pdf = new jsPDF("p", "mm", "a4", true); // true = enable compression
+            const pdf = new jsPDF("p", "mm", "a4", true);
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-            
-            // Calculate scaling to fit width
             const imgWidth = pdfWidth;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
             
-            // Add image with high quality
             pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight, undefined, "FAST");
             
-            // Save with descriptive filename
             const safeTitle = video.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().substring(0, 50);
             const fileName = `${safeTitle}-analytics-report.pdf`;
             pdf.save(fileName);
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
-            console.error("Error stack:", err.stack);
             alert(`Failed to generate PDF: ${err.message || 'Unknown error'}. Please check console for details.`);
         } finally {
             setDownloading(false);
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <Loader2 size={48} className="animate-spin text-accent-red mb-4" />
-                <p className="font-heading font-bold text-dark-border">Generating your deep dive report...</p>
-            </div>
-        );
+    // Show loading screen during page transition
+    if (pageTransition || loading) {
+        return <LoadingScreen message="Generating your deep dive report..." />;
     }
 
     if (error || !video) {

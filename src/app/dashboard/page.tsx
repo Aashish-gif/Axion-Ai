@@ -8,6 +8,7 @@ import { mockVideos } from "@/lib/mockData";
 import { Play, Youtube, AlertCircle, Loader2, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearch } from "@/context/SearchContext";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 interface YouTubeVideo {
     id: string;
@@ -68,7 +69,16 @@ export default function DashboardHome() {
     const [videos, setVideos] = useState<YouTubeVideo[]>([]);
     const [stats, setStats] = useState<ChannelStats | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [pageTransition, setPageTransition] = useState(true);
     const { searchQuery } = useSearch();
+
+    // Page load animation
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setPageTransition(false);
+        }, 600); // 0.6 second page load
+        return () => clearTimeout(timer);
+    }, []);
 
     const fetchData = async () => {
         try {
@@ -239,6 +249,11 @@ export default function DashboardHome() {
         await fetchData();
         setSyncing(false);
     };
+
+    // Show loading screen during page transition
+    if (pageTransition || (loading && !connected)) {
+        return <LoadingScreen message="Loading your dashboard..." />;
+    }
 
     if (loading) {
         return (

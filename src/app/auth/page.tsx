@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Mail, Lock, Play, ArrowRight, User, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export default function AuthPage() {
   const [isSignIn, setIsSignIn] = useState(true);
@@ -13,12 +14,24 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pageTransition, setPageTransition] = useState(true);
   const router = useRouter();
+
+  // Page load animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageTransition(false);
+    }, 800); // 0.8 second initial load
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    // Minimum loading time for better UX (0.8 seconds)
+    const minLoadingTime = new Promise(resolve => setTimeout(resolve, 800));
 
     try {
       if (isSignIn) {
@@ -33,10 +46,12 @@ export default function AuthPage() {
 
         if (!res.ok) {
           setError(data.error || "Login failed");
+          await minLoadingTime;
           setLoading(false);
           return;
         }
 
+        await minLoadingTime;
         router.push("/dashboard");
         router.refresh();
       } else {
@@ -57,18 +72,31 @@ export default function AuthPage() {
 
         if (!res.ok) {
           setError(data.error || "Registration failed");
+          await minLoadingTime;
           setLoading(false);
           return;
         }
 
+        await minLoadingTime;
         router.push("/dashboard");
         router.refresh();
       }
     } catch {
       setError("Network error. Please try again.");
+      await minLoadingTime;
       setLoading(false);
     }
   };
+
+  // Show loading screen during page transition
+  if (pageTransition) {
+    return <LoadingScreen message="Welcome to Axionix" />;
+  }
+
+  // Show loading screen during form submission
+  if (loading) {
+    return <LoadingScreen message={isSignIn ? "Signing you in..." : "Creating your account..."} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-bg-cream px-4 relative overflow-hidden">
