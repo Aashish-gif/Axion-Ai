@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { LoadingScreen, MiniLoader } from "@/components/ui/LoadingScreen";
+import { Loader2 } from "lucide-react";
 
 // Custom Toggle Component
 function Toggle({ checked, onChange }: { checked: boolean, onChange: (c: boolean) => void }) {
@@ -25,6 +26,7 @@ function Toggle({ checked, onChange }: { checked: boolean, onChange: (c: boolean
 export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [disconnecting, setDisconnecting] = useState(false);
     const [emailNotif, setEmailNotif] = useState(true);
     const [weeklyReport, setWeeklyReport] = useState(true);
     const [commentAlerts, setCommentAlerts] = useState(false);
@@ -75,6 +77,32 @@ export default function SettingsPage() {
         }
     };
 
+    const handleDisconnect = async () => {
+        if (!confirm('Are you sure you want to disconnect your YouTube channel? You will need to reconnect to view analytics and reports.')) {
+            return;
+        }
+        
+        setDisconnecting(true);
+        try {
+            const res = await fetch('/api/auth/disconnect-youtube', {
+                method: 'POST',
+            });
+            
+            if (res.ok) {
+                // Reload settings to reflect changes
+                await loadSettings();
+                alert('YouTube channel disconnected successfully!');
+            } else {
+                alert('Failed to disconnect YouTube channel. Please try again.');
+            }
+        } catch (error) {
+            console.error('Disconnect error:', error);
+            alert('Failed to disconnect YouTube channel. Please try again.');
+        } finally {
+            setDisconnecting(false);
+        }
+    };
+
     // Show loading screen while fetching data
     if (loading) {
         return <LoadingScreen message="Loading your settings..." variant="default" fullScreen={false} />;
@@ -110,14 +138,27 @@ export default function SettingsPage() {
                                     <div className="w-2 h-2 rounded-full bg-white animate-pulse" /> Connected
                                 </Badge>
                             </div>
-                            <Button variant="secondary" className="w-full sm:w-auto mt-4 sm:mt-0">Disconnect</Button>
+                            <Button 
+                                variant="secondary" 
+                                className="w-full sm:w-auto mt-4 sm:mt-0"
+                                onClick={handleDisconnect}
+                                disabled={disconnecting}
+                            >
+                                {disconnecting ? (
+                                    <><Loader2 size={16} className="animate-spin" /> Disconnecting...</>
+                                ) : (
+                                    "Disconnect"
+                                )}
+                            </Button>
                         </Card>
                     ) : (
                         <Card className="p-6 border-2 border-dashed border-gray-300 bg-gray-50">
                             <div className="text-center">
                                 <p className="font-bold text-lg mb-2">No YouTube channel connected</p>
                                 <p className="text-sm text-gray-600 mb-4">Connect your YouTube channel to access analytics and reports</p>
-                                <Button variant="primary">Connect YouTube</Button>
+                                <a href="/api/auth/youtube">
+                                    <Button variant="primary">Connect YouTube</Button>
+                                </a>
                             </div>
                         </Card>
                     )}
