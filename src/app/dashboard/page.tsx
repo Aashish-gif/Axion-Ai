@@ -80,6 +80,26 @@ export default function DashboardHome() {
         return () => clearTimeout(timer);
     }, []);
 
+    // Check for URL parameters (e.g., after YouTube connection)
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+        const error = urlParams.get('error');
+        
+        if (success === 'youtube_connected') {
+            // Refresh data after successful YouTube connection
+            fetchData();
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/dashboard');
+        }
+        
+        if (error) {
+            console.error('YouTube connection error:', error);
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/dashboard');
+        }
+    }, []);
+
     const fetchData = async () => {
         try {
             const [vRes, sRes] = await Promise.all([
