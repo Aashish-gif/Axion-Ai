@@ -89,12 +89,13 @@ Guidelines:
 
 // New prompt for generating video ideas based on trends and market data
 const IDEA_GENERATION_PROMPT = `
-You are a Viral YouTube Content Strategist specializing in trend analysis and breakthrough video ideas. Your job is to generate HIGHLY actionable video ideas based on:
-1. Current market trends and what's going viral
-2. Content gaps in the creator's niche
+You are a Viral YouTube Content Strategist specializing in trend analysis and breakthrough video ideas across ALL niches (Entertainment, Education, Lifestyle, Tech, Beauty, Gaming, Fitness, Business, etc.). Your job is to generate HIGHLY actionable video ideas based on:
+1. Current market trends and what's going viral in THIS specific niche
+2. Content gaps in the creator's category
 3. Audience demand from comments and questions
 4. Seasonal/timing opportunities
 5. Emerging topics with low competition
+6. Cross-niche appeal opportunities (entertainment + education, lifestyle + business, etc.)
 
 INPUT CONTEXT:
 - Creator's niche/topic focus: {topic}
@@ -103,33 +104,47 @@ INPUT CONTEXT:
 - Current trending topics: {trendingTopics}
 - Market scenario: {marketScenario}
 
-Generate 9 highly specific, actionable video ideas that have viral potential.
+Generate 9 highly specific, actionable video ideas that have viral potential IN THIS NICHE.
+
+ADAPT YOUR APPROACH BASED ON NICHE TYPE:
+- ENTERTAINMENT: Focus on challenges, reactions, collaborations, drama, surprises
+- EDUCATIONAL: Focus on tutorials, guides, mistakes, comparisons, transformations
+- LIFESTYLE: Focus on routines, behind-the-scenes, favorites, day-in-life
+- TECH: Focus on reviews, comparisons, setups, tips/tricks, future predictions
+- BEAUTY/FASHION: Focus on tutorials, transformations, hauls, favorites/fails
+- GAMING: Focus on walkthroughs, challenges, reactions, easter eggs, speedruns
+- FITNESS: Focus on transformations, challenges, routines, myth-busting
+- BUSINESS/FINANCE: Focus on case studies, income reports, mistakes, tools, strategies
+- FOOD: Focus on recipes, challenges, reviews, comparisons, cultural explorations
+- TRAVEL: Focus on guides, hidden gems, budget tips, itineraries, culture shocks
 
 For EACH idea, provide:
-1. **TITLE**: Catchy, searchable, under 60 characters
+1. **TITLE**: Catchy, searchable, under 60 characters (adapt style to niche)
 2. **HOOK**: Compelling first sentence for description/promotion (under 120 chars)
 3. **DESCRIPTION**: 2-3 sentences explaining what the video covers
-4. **TARGET_AUDIENCE**: Who this is for (beginner, intermediate, advanced)
-5. **TRENDING_SCORE**: 0-100 (how much this aligns with current trends)
-6. **COMPETITION_LEVEL**: Low/Medium/High (how saturated is this topic)
+4. **TARGET_AUDIENCE**: Who this is for (beginner, intermediate, advanced, or general)
+5. **TRENDING_SCORE**: 0-100 (how much this aligns with current trends IN THIS NICHE)
+6. **COMPETITION_LEVEL**: Low/Medium/High (how saturated is this topic in this niche)
 7. **ESTIMATED_DIFFICULTY**: Easy/Medium/Hard (production complexity)
 8. **CONTENT_GAPS_TO_FILL**: Which audience questions/gaps this addresses
-9. **KEYWORDS**: 5-7 SEO keywords for discoverability
-10. **THUMBNAIL_CONCEPT**: Visual concept for thumbnail design
-11. **WHY_IT_WILL_WORK**: Data-backed reasoning (trend + gap + demand)
-12. **CATEGORY**: Classify as Tutorial/Review/List/Case Study/Opinion/Challenge
+9. **KEYWORDS**: 5-7 SEO keywords for discoverability (niche-specific)
+10. **THUMBNAIL_CONCEPT**: Visual concept for thumbnail design (niche-appropriate)
+11. **WHY_IT_WILL_WORK**: Data-backed reasoning (trend + gap + demand in this niche)
+12. **CATEGORY**: Classify as Tutorial/Review/List/Case Study/Opinion/Challenge/Vlog/Reaction/Collaboration/etc.
 
 PRIORITIZE:
 - Topics with HIGH demand + LOW competition (blue ocean opportunities)
-- Ideas that fill identified content gaps
+- Ideas that fill identified content gaps in THIS niche
 - Trends that are emerging (not yet saturated)
-- Evergreen topics with consistent search volume
-- Controversial/unpopular opinions that spark discussion
+- Evergreen topics with consistent search volume in this category
+- Controversial/unpopular opinions that spark discussion (if appropriate for niche)
 - Case studies with surprising results
-- "X vs Y" comparison formats (perform well)
+- "X vs Y" comparison formats (perform well across all niches)
 - "Mistakes to avoid" warning-style content
-- Behind-the-scenes / process videos
-- Prediction/future trend content
+- Behind-the-scenes / process videos (humanizes creator)
+- Prediction/future trend content (positions creator as expert)
+- COLLABORATION ideas (cross-pollination opportunities)
+- REACTION content (if entertainment-focused niche)
 
 FORMAT: Return ONLY a JSON array of 9 ideas matching the GeneratedVideoIdea interface.`;
 
@@ -404,4 +419,39 @@ function getFallbackIdeas(topic: string): GeneratedVideoIdea[] {
   ];
   
   return ideas;
+}
+
+// Helper function to determine niche type
+function getNicheType(topic: string): string {
+  const topicLower = topic.toLowerCase();
+  
+  if (topicLower.includes('game') || topicLower.includes('gaming')) return 'gaming';
+  if (topicLower.includes('tech') || topicLower.includes('software') || topicLower.includes('app')) return 'tech';
+  if (topicLower.includes('beauty') || topicLower.includes('makeup') || topicLower.includes('fashion')) return 'beauty';
+  if (topicLower.includes('fitness') || topicLower.includes('workout') || topicLower.includes('health')) return 'fitness';
+  if (topicLower.includes('food') || topicLower.includes('recipe') || topicLower.includes('cooking')) return 'food';
+  if (topicLower.includes('travel') || topicLower.includes('trip')) return 'travel';
+  if (topicLower.includes('business') || topicLower.includes('money') || topicLower.includes('finance')) return 'business';
+  if (topicLower.includes('music') || topicLower.includes('art') || topicLower.includes('entertain')) return 'entertainment';
+  if (topicLower.includes('lifestyle') || topicLower.includes('vlog') || topicLower.includes('daily')) return 'lifestyle';
+  
+  return 'education'; // default
+}
+
+// Helper function to get appropriate imagery for niche
+function getNicheImagery(nicheType: string): string {
+  const imagery: Record<string, string> = {
+    'gaming': 'controller icon',
+    'tech': 'laptop/phone image',
+    'beauty': 'makeup palette or model photo',
+    'fitness': 'workout equipment or physique',
+    'food': 'delicious dish photo',
+    'travel': 'scenic destination',
+    'business': 'graph/money visual',
+    'entertainment': 'colorful fun background',
+    'lifestyle': 'aesthetic flat lay',
+    'education': 'notebook/desk setup'
+  };
+  
+  return imagery[nicheType] || 'relevant imagery';
 }
