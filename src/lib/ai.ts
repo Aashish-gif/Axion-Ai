@@ -151,7 +151,8 @@ FORMAT: Return ONLY a JSON array of 9 ideas matching the GeneratedVideoIdea inte
 export async function generateAIReport(comments: string[], videoContext: any): Promise<AIReport> {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-    const gemini = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Use PRO for deeper analysis
+    // Use gemini-pro for text generation (most widely available)
+    const gemini = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Enhanced videoContext with transcript, tags, category, and engagement metrics
     const prompt = `${SYSTEM_PROMPT}\n\nCOMPREHENSIVE Video Context (Title, Description, Thumbnails, Statistics, Tags, Category, Engagement Patterns): ${JSON.stringify(videoContext)}\n\nViewer Comments (Analyze for sentiment, questions, retention clues, technical issues): ${JSON.stringify(comments.slice(0, 100))}`;
@@ -205,7 +206,8 @@ export async function generateAIReport(comments: string[], videoContext: any): P
 export async function askGeminiAboutVideo(query: string, videoContext: any): Promise<string> {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-    const gemini = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    // Use gemini-pro for text generation
+    const gemini = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const chatPrompt = `
     You are an AI Video Assistant. You have access to the following video context:
@@ -236,7 +238,8 @@ export async function generateVideoIdeas(
 ): Promise<GeneratedVideoIdea[]> {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-    const gemini = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    // Use gemini-pro for idea generation
+    const gemini = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = IDEA_GENERATION_PROMPT
       .replace('{topic}', topic || 'General content creation')
