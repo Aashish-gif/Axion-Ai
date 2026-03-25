@@ -11,6 +11,8 @@ import { ArrowLeft, Download, Loader2, AlertCircle } from "lucide-react";
 interface VideoReport {
     id: string;
     title: string;
+    thumbnailUrl?: string;
+    description?: string;
     commentCount: number;
     sentimentScore: number;
     emoji: string;
@@ -19,11 +21,21 @@ interface VideoReport {
     goodPoints: string[];
     improvPoints: string[];
     flagPoints: string[];
+    thumbnailStrategy?: string[];
     questions: string[];
     nextVideoIdea: string;
     whatIsGreat: string;
     whatIsBad: string;
     overallSummary: string;
+    viralStrategy?: string;
+    // New comprehensive fields
+    videoSummary?: string;
+    contentGaps?: string[];
+    retentionInsights?: string[];
+    trendingTopics?: string[];
+    competitorComparison?: string;
+    technicalIssues?: string[];
+    audienceInsights?: string;
     metrics: {
         views: string;
         likes: string;
@@ -57,6 +69,10 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         fetchReport();
     }, [resolvedParams.id]);
 
+    // Removed chat functionality
+
+
+
     const handleDownloadPDF = async () => {
         if (downloading) return;
         setDownloading(true);
@@ -78,46 +94,200 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 allowTaint: true,
                 logging: false,
                 backgroundColor: "#FFF9F0",
+                ignoreElements: (element: Element) => {
+                    // Ignore any elements with oklab in their style
+                    const cssText = (element as HTMLElement).style.cssText;
+                    if (cssText.includes('oklab') || cssText.includes('oklch')) {
+                        console.log('Ignoring element with oklab:', element);
+                        return true;
+                    }
+                    return false;
+                },
                 onclone: (clonedDoc) => {
-                    // Fix for html2canvas oklab/oklch error in Tailwind 4
+                    // CRITICAL: Remove ALL CSS variables and color functions that might contain oklab
+                    const style = clonedDoc.createElement('style');
+                    style.innerHTML = `
+                        * { 
+                            -webkit-print-color-adjust: exact; 
+                            print-color-adjust: exact;
+                            box-sizing: border-box;
+                        }
+                        
+                        /* COMPLETE COLOR RESET - Force EVERYTHING to HEX */
+                        :root {
+                            --color-dark-border: #111827 !important;
+                            --color-accent-red: #FF3B3B !important;
+                            --color-bg-cream: #FFF9F0 !important;
+                            --color-white: #ffffff !important;
+                            --color-black: #000000 !important;
+                            /* Override ALL Tailwind color variables */
+                            --gray-50: #F9FAFB !important;
+                            --gray-100: #F3F4F6 !important;
+                            --gray-200: #E5E7EB !important;
+                            --green-500: #22C55E !important;
+                            --green-600: #16A34A !important;
+                            --yellow-400: #FBBF24 !important;
+                            --red-500: #EF4444 !important;
+                            --red-600: #DC2626 !important;
+                            --blue-200: #BFDBFE !important;
+                            --blue-300: #9CA3AF !important;
+                            --blue-800: #1E40AF !important;
+                            --blue-900: #1E3A8A !important;
+                            --purple-200: #E9D5FF !important;
+                            --purple-300: #D8B4FE !important;
+                            --purple-800: #6B21A8 !important;
+                            --purple-900: #581C87 !important;
+                            --green-100: #DCFCE7 !important;
+                            --green-300: #86EFAC !important;
+                            --green-700: #15803D !important;
+                            --red-100: #FEE2E2 !important;
+                            --red-300: #FCA5A5 !important;
+                            --red-700: #B91C1C !important;
+                        }
+                        
+                        /* NUCLEAR OPTION: Remove ANY color function from ANY property */
+                        * {
+                            background-image: none !important;
+                        }
+                        
+                        [style*="oklch"], [style*="oklab"], [style*="color("] {
+                            all: unset !important;
+                            display: none !important;
+                        }
+                        
+                        /* Force remove oklab from computed styles inline */
+                        .bg-bg-cream { background-color: #FFF9F0 !important; }
+                        .bg-white { background-color: #ffffff !important; }
+                        .bg-gray-50 { background-color: #F9FAFB !important; }
+                        .bg-gray-100 { background-color: #F3F4F6 !important; }
+                        .bg-green-500 { background-color: #22C55E !important; }
+                        .bg-yellow-400 { background-color: #FBBF24 !important; }
+                        .text-dark-border { color: #111827 !important; }
+                        .border-dark-border { border-color: #111827 !important; }
+                        .bg-blue-50 { background-color: #EFF6FF !important; }
+                        .bg-purple-50 { background-color: #FAF5FF !important; }
+                        .bg-red-50 { background-color: #FEF2F2 !important; }
+                        .border-blue-300 { border-color: #93C5FD !important; }
+                        .border-purple-300 { border-color: #D8B4FE !important; }
+                        .border-red-300 { border-color: #FCA5A5 !important; }
+                        .text-blue-900 { color: #1E3A8A !important; }
+                        .text-blue-800 { color: #1E40AF !important; }
+                        .text-purple-900 { color: #581C87 !important; }
+                        .text-purple-800 { color: #6B21A8 !important; }
+                        .text-green-700 { color: #15803D !important; }
+                        .text-red-700 { color: #B91C1C !important; }
+                        
+                        /* Shadows MUST be hex */
+                        .shadow-solid { box-shadow: 5px 6px 0px #111827 !important; }
+                        .shadow-button { box-shadow: 4px 5px 0px #111827 !important; }
+                        
+                        /* PDF Optimization: Better page breaks */
+                        .mb-10, .mb-12 {
+                            page-break-inside: avoid !important;
+                        }
+                        
+                        /* Ensure cards don't break across pages */
+                        [class*="Card"] {
+                            page-break-inside: avoid !important;
+                        }
+                    `;
+                    clonedDoc.head.appendChild(style);
+
+                    // AGGRESSIVE CLEANUP: Process EVERY single element
                     const elements = clonedDoc.getElementsByTagName("*");
+                    
                     for (let i = 0; i < elements.length; i++) {
                         const el = elements[i] as HTMLElement;
-                        const style = window.getComputedStyle(el);
                         
-                        // Check common properties for oklab/oklch
-                        ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'stroke', 'fill'].forEach(prop => {
-                            const val = (el.style as any)[prop] || style.getPropertyValue(prop);
-                            if (val && (val.includes('oklch') || val.includes('oklab'))) {
-                                // Fallback to a safe color if oklch/oklab is detected
-                                if (prop === 'boxShadow') {
-                                    el.style.boxShadow = 'none';
-                                } else {
-                                    // Simply stripping it often works as html2canvas will use the inherited or default color
-                                    // Or we can try to force a hex if we know it (e.g. for dark border)
-                                    if (val.includes('oklch(0.18 0.02 261.69)')) el.style.setProperty(prop, '#111827', 'important');
-                                    else el.style.setProperty(prop, 'inherit', 'important');
+                        // Check and clean inline styles FIRST
+                        const inlineStyle = el.getAttribute('style');
+                        if (inlineStyle) {
+                            // Replace ANY oklab/oklch/color() function with safe values
+                            let cleanedStyle = inlineStyle
+                                .replace(/oklch\([^)]*\)/gi, '#ffffff')
+                                .replace(/oklab\([^)]*\)/gi, '#111827')
+                                .replace(/color\([^)]*\)/gi, '#111827');
+                            
+                            if (cleanedStyle !== inlineStyle) {
+                                el.setAttribute('style', cleanedStyle);
+                            }
+                        }
+                        
+                        // Now check computed properties and override
+                        const computed = window.getComputedStyle(el);
+                        const propsToCheck = [
+                            'background-color', 'color', 'border-color',
+                            'border-top-color', 'border-right-color', 
+                            'border-bottom-color', 'border-left-color',
+                            'outline-color', 'fill', 'stroke',
+                            'box-shadow', 'text-shadow'
+                        ];
+                        
+                        propsToCheck.forEach(prop => {
+                            const value = computed.getPropertyValue(prop);
+                            
+                            // If we find oklab/oklch, FORCE override it
+                            if (value && (value.includes('oklch') || value.includes('oklab') || value.includes('color('))) {
+                                if (prop.includes('background')) {
+                                    el.style.setProperty(prop, '#ffffff', 'important');
+                                } else if (prop.includes('color') || prop === 'fill' || prop === 'stroke') {
+                                    el.style.setProperty(prop, '#111827', 'important');
+                                } else if (prop.includes('shadow')) {
+                                    el.style.setProperty(prop, 'none', 'important');
                                 }
                             }
                         });
+                        
+                        // Special SVG handling
+                        if (el instanceof SVGElement) {
+                            ['fill', 'stroke'].forEach(attr => {
+                                const attrValue = el.getAttribute(attr);
+                                if (attrValue && (attrValue.includes('oklch') || attrValue.includes('oklab'))) {
+                                    el.setAttribute(attr, '#111827');
+                                }
+                            });
+                        }
                     }
+                    
+                    // FINAL PASS: Remove any remaining CSS variables that might reference oklab
+                    const allStyles = clonedDoc.querySelectorAll('style');
+                    allStyles.forEach(styleEl => {
+                        const originalText = styleEl.textContent;
+                        if (originalText) {
+                            const cleaned = originalText
+                                .replace(/oklch\([^)]*\)/gi, '#ffffff')
+                                .replace(/oklab\([^)]*\)/gi, '#111827')
+                                .replace(/color\([^)]*\)/gi, '#111827');
+                            styleEl.textContent = cleaned;
+                        }
+                    });
                 }
             });
+
 
             // Restore the download button
             if (downloadBtn) (downloadBtn as HTMLElement).style.display = 'flex';
 
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4");
+            const imgData = canvas.toDataURL("image/png", 1.0);
+            const pdf = new jsPDF("p", "mm", "a4", true); // true = enable compression
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-            const safeTitle = video.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-            pdf.save(`${safeTitle}-report.pdf`);
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            // Calculate scaling to fit width
+            const imgWidth = pdfWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Add image with high quality
+            pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight, undefined, "FAST");
+            
+            // Save with descriptive filename
+            const safeTitle = video.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().substring(0, 50);
+            const fileName = `${safeTitle}-analytics-report.pdf`;
+            pdf.save(fileName);
         } catch (err: any) {
             console.error("PDF Generation failed:", err);
-            alert(`Failed to generate PDF: ${err.message || 'Unknown error'}`);
+            console.error("Error stack:", err.stack);
+            alert(`Failed to generate PDF: ${err.message || 'Unknown error'}. Please check console for details.`);
         } finally {
             setDownloading(false);
         }
@@ -154,36 +324,180 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             </Link>
 
             <div id="report-content" className="bg-bg-cream">
-                {/* Header Row */}
-                <div className="flex flex-col md:flex-row gap-6 mb-10 items-start md:items-center">
-                    <Card
-                        className="w-[180px] h-[110px] shrink-0 flex items-center justify-center border-[3px]"
-                        style={{ background: `linear-gradient(135deg, ${video.gradientFrom}, ${video.gradientTo})` }}
-                    >
-                        <span className="text-5xl drop-shadow-md">{video.emoji}</span>
-                    </Card>
+                {/* ===== SECTION 1: HEADER & OVERVIEW ===== */}
+                <div className="mb-12">
+                    <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                        <Card
+                            className="w-[220px] h-[124px] shrink-0 overflow-hidden border-[3px] bg-white relative"
+                        >
+                            {video.thumbnailUrl ? (
+                                <img 
+                                    src={video.thumbnailUrl} 
+                                    alt={video.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div 
+                                    className="w-full h-full flex items-center justify-center"
+                                    style={{ background: `linear-gradient(135deg, ${video.gradientFrom}, ${video.gradientTo})` }}
+                                >
+                                    <span className="text-5xl drop-shadow-md">{video.emoji}</span>
+                                </div>
+                            )}
+                        </Card>
 
-                    <div className="flex-1">
-                        <div className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Deep Dive Report</div>
-                        <h1 className="font-heading font-black text-3xl md:text-4xl text-dark-border mb-4">{video.title}</h1>
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="green">Score: {video.sentimentScore}/100</Badge>
-                            <Badge variant="dark" className="bg-white !text-dark-border !shadow-none">
-                                {video.commentCount.toLocaleString()} Comments Analyzed
-                            </Badge>
-                            <Button 
-                                variant="dark" 
-                                className="ml-auto !py-1.5 !px-4 text-sm flex items-center gap-2 disabled:opacity-50" 
-                                onClick={handleDownloadPDF}
-                                disabled={downloading}
-                                data-pdf-ignore
-                            >
-                                {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                                {downloading ? "Generating PDF..." : "Download PDF Report"}
-                            </Button>
+                        <div className="flex-1">
+                            <div className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Deep Dive Report</div>
+                            <h1 className="font-heading font-black text-3xl md:text-4xl text-dark-border mb-4">{video.title}</h1>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="green">Score: {video.sentimentScore}/100</Badge>
+                                <Badge variant="dark" className="bg-white !text-dark-border !shadow-none">
+                                    {video.commentCount.toLocaleString()} Comments Analyzed
+                                </Badge>
+                                <Button 
+                                    variant="dark" 
+                                    className="ml-auto !py-1.5 !px-4 text-sm flex items-center gap-2 disabled:opacity-50" 
+                                    onClick={handleDownloadPDF}
+                                    disabled={downloading}
+                                    data-pdf-ignore
+                                >
+                                    {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                                    {downloading ? "Generating PDF..." : "Download PDF Report"}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                {/* ===== SECTION 2: EXECUTIVE SUMMARY ===== */}
+                <div className="grid md:grid-cols-3 gap-6 mb-10">
+                    <Card bg="white" className="p-6 border-4 border-dark-border shadow-solid md:col-span-2">
+                        <h2 className="font-heading font-black text-xl mb-3 flex items-center gap-2">
+                            📋 Executive Summary
+                        </h2>
+                        <p className="text-base font-medium leading-relaxed text-dark-border/80">
+                            {video.overallSummary}
+                        </p>
+                    </Card>
+
+                    <Card bg="lavender" className="p-6 border-4 border-dark-border shadow-solid">
+                        <h2 className="font-heading font-black text-xl mb-3 flex items-center gap-2">
+                            🚀 Viral Strategy
+                        </h2>
+                        <p className="text-base font-bold leading-relaxed text-dark-border">
+                            {video.viralStrategy || "Analyze deeper to reveal your viral path."}
+                        </p>
+                    </Card>
+                </div>
+
+                {/* ===== SECTION 3: VIDEO CONTENT ANALYSIS ===== */}
+                {video.videoSummary && (
+                    <div className="mb-10">
+                        <h2 className="font-heading font-black text-2xl mb-4">🎬 Content Analysis</h2>
+                        <Card bg="white" className="p-8 border-4 border-dark-border shadow-solid mb-6">
+                            <h3 className="font-heading font-black text-lg mb-3">What This Video Is About</h3>
+                            <p className="text-lg font-medium leading-relaxed text-dark-border/80 mb-6">
+                                {video.videoSummary}
+                            </p>
+                            
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="bg-blue-50 p-6 rounded-2xl border-2 border-blue-300">
+                                    <h4 className="font-heading font-black text-lg mb-3 text-blue-900 flex items-center gap-2">
+                                        👥 Audience Insights
+                                    </h4>
+                                    <p className="text-blue-800 font-bold">{video.audienceInsights || "Analyzing audience demographics and preferences..."}</p>
+                                </div>
+                                
+                                <div className="bg-purple-50 p-6 rounded-2xl border-2 border-purple-300">
+                                    <h4 className="font-heading font-black text-lg mb-3 text-purple-900 flex items-center gap-2">
+                                        ⚔️ Competitive Positioning
+                                    </h4>
+                                    <p className="text-purple-800 font-bold">{video.competitorComparison || "Loading competitive analysis..."}</p>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                )}
+
+                {/* ===== SECTION 4: PERFORMANCE INSIGHTS ===== */}
+                <div className="mb-10">
+                    <h2 className="font-heading font-black text-2xl mb-4">📊 Performance Deep Dive</h2>
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <Card bg="yellow" className="p-6 border-4 border-dark-border shadow-solid">
+                            <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">
+                                🎯 Content Gaps
+                            </h3>
+                            <p className="text-sm font-bold text-dark-border/70 mb-4">What viewers wanted but didn't get:</p>
+                            <ul className="space-y-2">
+                                {video.contentGaps?.map((gap, i) => (
+                                    <li key={i} className="flex items-start gap-3 font-bold text-dark-border">
+                                        <div className="bg-accent-red text-white w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-xs border-2 border-dark-border shadow-[1px_1px_0_#111827]">
+                                            {i + 1}
+                                        </div>
+                                        {gap}
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
+
+                        <Card bg="mint" className="p-6 border-4 border-dark-border shadow-solid">
+                            <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">
+                                📈 Retention Insights
+                            </h3>
+                            <p className="text-sm font-bold text-dark-border/70 mb-4">Where viewers drop off or rewatch:</p>
+                            <ul className="space-y-2">
+                                {video.retentionInsights?.map((insight, i) => (
+                                    <li key={i} className="flex items-start gap-3 font-bold text-dark-border">
+                                        <div className="bg-accent-red text-white w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-xs border-2 border-dark-border shadow-[1px_1px_0_#111827]">
+                                            {i + 1}
+                                        </div>
+                                        {insight}
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <Card className="p-6 border-4 border-red-300 bg-red-50 shadow-solid">
+                            <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">
+                                ⚠️ Technical Quality Check
+                            </h3>
+                            {video.technicalIssues && video.technicalIssues.length > 0 ? (
+                                <ul className="space-y-2">
+                                    {video.technicalIssues.map((issue, i) => (
+                                        <li key={i} className="flex items-start gap-3 font-bold text-red-700">
+                                            <AlertCircle size={20} className="shrink-0 mt-0.5" />
+                                            {issue}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="bg-green-100 p-4 rounded-xl border-2 border-green-300">
+                                    <p className="text-green-700 font-bold flex items-center gap-2">
+                                        ✅ No technical issues detected! Excellent production quality.
+                                    </p>
+                                </div>
+                            )}
+                        </Card>
+
+                        <Card bg="lavender" className="p-6 border-4 border-dark-border shadow-solid">
+                            <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">
+                                🔥 Trending Opportunities
+                            </h3>
+                            <p className="text-sm font-bold text-dark-border/70 mb-4">Hot topics in your niche:</p>
+                            <ul className="space-y-2">
+                                {video.trendingTopics?.map((topic, i) => (
+                                    <li key={i} className="flex items-start gap-3 font-bold text-dark-border">
+                                        <span className="text-xl mr-2">📈</span>
+                                        {topic}
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
+                    </div>
+                </div>
+
 
                 {/* Overall Summary Row */}
                 <Card bg="white" className="p-8 border-4 border-dark-border mb-10 shadow-solid">
@@ -195,7 +509,16 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     </p>
                 </Card>
 
-                {/* Two-column grid */}
+                    <Card bg="lavender" className="p-8 border-4 border-dark-border shadow-solid mb-10">
+                        <h2 className="font-heading font-black text-2xl mb-4 flex items-center gap-2">
+                            🚀 Viral Growth Strategy
+                        </h2>
+                        <p className="text-lg font-bold leading-relaxed text-dark-border">
+                            {video.viralStrategy || "Analyze deeper to reveal your viral path."}
+                        </p>
+                    </Card>
+
+                {/* ===== SECTION 5: METRICS & SENTIMENT ===== */}
                 <div className="grid md:grid-cols-2 gap-8 mb-10">
                     {/* Sentiment Meter */}
                     <Card bg="mint" className="p-8">
@@ -260,6 +583,27 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     </Card>
 
                     {/* AI Idea Generator */}
+                    <Card bg="yellow" className="p-8 border-4">
+                        <h2 className="font-heading font-black text-2xl mb-4 flex items-center gap-2">🖼️ Thumbnail & Hook Strategy</h2>
+                        <ul className="space-y-3">
+                            {video.thumbnailStrategy && video.thumbnailStrategy.length > 0 ? (
+                                video.thumbnailStrategy.map((pt, i) => (
+                                    <li key={i} className="flex items-start gap-3 font-bold text-dark-border">
+                                        <div className="bg-accent-red text-white w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-xs border-2 border-dark-border shadow-[1px_1px_0_#111827]">
+                                            {i + 1}
+                                        </div>
+                                        {pt}
+                                    </li>
+                                ))
+                            ) : (
+                                <li className="text-gray-500 italic">No specific thumbnail strategy generated.</li>
+                            )}
+                        </ul>
+                    </Card>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8 mb-10">
+                    {/* Next Idea Card */}
                     <Card className="p-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FF3B3B, #FF6B35)' }}>
                         <div className="absolute top-4 right-4 text-6xl opacity-20">💡</div>
                         <div className="text-white relative z-10 h-full flex flex-col">
@@ -314,8 +658,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     </div>
                 </div>
 
-                {/* AI Insights 3-col grid */}
-                <h2 className="font-heading font-black text-2xl mb-6">AI Insights</h2>
+                {/* ===== SECTION 6: AI RECOMMENDATIONS ===== */}
+                <h2 className="font-heading font-black text-2xl mb-6">💡 Expert Recommendations</h2>
                 <div className="grid md:grid-cols-3 gap-6 mb-10">
                     <Card bg="mint" className="p-6">
                         <h3 className="font-heading font-black text-xl mb-4 flex items-center gap-2">✅ The Good</h3>
@@ -365,9 +709,9 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     </Card>
                 </div>
 
-                {/* Question Bank section */}
+                {/* ===== SECTION 7: QUESTION BANK ===== */}
                 <div className="mb-10">
-                    <h2 className="font-heading font-black text-2xl mb-6">Question Bank</h2>
+                    <h2 className="font-heading font-black text-2xl mb-6">❓ Viewer Question Bank</h2>
                     <div className="max-h-[320px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                         {video.questions.length > 0 ? (
                             video.questions.map((q: string, i: number) => (
