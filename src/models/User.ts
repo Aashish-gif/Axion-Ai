@@ -12,6 +12,8 @@ export interface IUser extends Document {
   youtubeChannelTitle?: string;
   youtubeChannelThumbnail?: string;
   createdAt: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -42,6 +44,8 @@ const UserSchema = new Schema<IUser>({
   youtubeChannelId: String,
   youtubeChannelTitle: String,
   youtubeChannelThumbnail: String,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   createdAt: {
     type: Date,
     default: Date.now,
