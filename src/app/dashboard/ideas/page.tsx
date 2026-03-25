@@ -30,8 +30,10 @@ export default function IdeasPage() {
     const [sortBy, setSortBy] = useState<'trending' | 'competition'>('trending');
 
     const predefinedTopics = [
-        "AI & Automation", "Web Development", "Content Creation", 
-        "Productivity", "Digital Marketing", "Entrepreneurship"
+        "🎮 Gaming", "💄 Beauty & Fashion", "🍳 Food & Cooking", 
+        "✈️ Travel", "💪 Fitness", "🎵 Music & Entertainment",
+        "💼 Business & Finance", "🏋️ Lifestyle & Vlogs", "📱 Tech Reviews",
+        "🎬 Film & Animation", "📚 Education & Tutorials", "🐾 Pets & Animals"
     ];
 
     const handleGenerateIdeas = async () => {
@@ -108,7 +110,7 @@ export default function IdeasPage() {
                     AI-Powered Idea Factory
                 </h1>
                 <p className="text-white/90 font-medium text-lg md:text-xl mb-8 max-w-3xl">
-                    Generate data-driven video ideas based on market trends, content gaps, and viral potential. Let AI tell you what to make next.
+                    Generate data-driven video ideas for ANY niche - Entertainment, Education, Lifestyle, Tech, Beauty, Gaming & more. Let AI tell you what will go viral.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl mb-6">
