@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import connectDB from "@/lib/mongodb";
-import User from "@/models/User";
+import User, { CachedReport } from "@/models/User";
 import { generateAIReport } from "@/lib/ai";
 
 interface JwtPayload {
@@ -33,7 +33,14 @@ export async function GET(
       return NextResponse.json({ error: "YouTube not connected" }, { status: 400 });
     }
 
-    // 1. Fetch Video Metadata
+    // Check for cached report first
+    const cachedReport = await CachedReport.findOne({
+      userId: decoded.userId.toString(),
+      videoId: videoId,
+      expiresAt: { $gt: new Date() } // Not expired
+    });
+
+    // 1. Fetch Video Metadata (needed for both cache check and generation)
     const videoRes = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}`,
       { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
@@ -43,6 +50,12 @@ export async function GET(
 
     // 2. Fallback to mock data if video not found or ID is "1" (Demo)
     if (!video || videoId === "1") {
+        // Even for demo video, check if we have cached data
+        if (cachedReport) {
+          console.log(`✓ Returning cached demo report for video ${videoId}`);
+          return NextResponse.json(cachedReport.reportData);
+        }
+        
         return NextResponse.json({
             id: videoId === "1" ? "1" : videoId,
             title: videoId === "1" ? "Next-Gen AI Strategies" : "Analyzing Your Video",
@@ -73,6 +86,30 @@ export async function GET(
             technicalIssues: ["Background music slightly loud in sections", "Some text overlays hard to read on mobile"],
             audienceInsights: "Primary audience is intermediate creators (1k-50k subs) seeking actionable AI workflows to scale content production without sacrificing quality."
         });
+    }
+
+    // If we have a cached report, check if video stats have changed significantly
+    if (cachedReport) {
+      const currentStats = {
+        viewCount: parseInt(video.statistics.viewCount || "0"),
+        likeCount: parseInt(video.statistics.likeCount || "0"),
+        commentCount: parseInt(video.statistics.commentCount || "0")
+      };
+      
+      const oldStats = cachedReport.videoStatistics;
+      
+      // Calculate percentage changes
+      const viewChange = Math.abs(currentStats.viewCount - oldStats.viewCount) / (oldStats.viewCount || 1);
+      const commentChange = Math.abs(currentStats.commentCount - oldStats.commentCount) / (oldStats.commentCount || 1);
+      const likeChange = Math.abs(currentStats.likeCount - oldStats.likeCount) / (oldStats.likeCount || 1);
+      
+      // If changes are less than 5%, return cached report
+      if (viewChange < 0.05 && commentChange < 0.05 && likeChange < 0.05) {
+        console.log(`✓ Returning cached report for video ${videoId} (views: ${(viewChange * 100).toFixed(1)}% change, comments: ${(commentChange * 100).toFixed(1)}% change)`);
+        return NextResponse.json(cachedReport.reportData);
+      }
+      
+      console.log(`📊 Stats changed significantly (views: ${(viewChange * 100).toFixed(1)}%, comments: ${(commentChange * 100).toFixed(1)}%), regenerating report...`);
     }
 
     // 3. Fetch More Comments for AI Analysis
@@ -177,7 +214,7 @@ export async function GET(
             likes: v.statistics.likeCount
         }))
     };
-
+    
     let aiReport;
     try {
         aiReport = await generateAIReport(commentTexts, videoContext);
@@ -197,8 +234,8 @@ export async function GET(
             viralStrategy: "Pivot to short-form teasers to drive long-form retention."
         };
     }
-    
-    return NextResponse.json({
+        
+    const reportData = {
         id: video.id,
         title: video.snippet.title,
         description: video.snippet.description,
@@ -239,7 +276,34 @@ export async function GET(
             subscribersGained: analyticsData?.subscribersGained || estimatedAnalytics.estimatedSubscribersGained,
             avgViewDuration: Math.round((parseInt(video.statistics.viewCount || "0") > 0) ? (estimatedAnalytics.estimatedWatchTimeHours * 60 * 60) / parseInt(video.statistics.viewCount || "1") : 0) + " seconds"
         }
-    });
+    };
+        
+    // Cache the report for 7 days
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+        
+    const currentStats = {
+      viewCount: parseInt(video.statistics.viewCount || "0"),
+      likeCount: parseInt(video.statistics.likeCount || "0"),
+      commentCount: parseInt(video.statistics.commentCount || "0")
+    };
+        
+    await CachedReport.findOneAndUpdate(
+      { userId: decoded.userId.toString(), videoId: videoId },
+      {
+        userId: decoded.userId.toString(),
+        videoId: videoId,
+        reportData: reportData,
+        videoStatistics: currentStats,
+        expiresAt: expiresAt,
+        createdAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+        
+    console.log(`💾 Cached report for video ${videoId} for 7 days`);
+        
+    return NextResponse.json(reportData);
 
 
   } catch (error) {
