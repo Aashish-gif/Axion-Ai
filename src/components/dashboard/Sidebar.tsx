@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Play, LogOut } from "lucide-react";
+import { Play, LogOut, User } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export function Sidebar() {
@@ -18,6 +18,7 @@ export function Sidebar() {
         { label: "Reply Studio", emoji: "🤖", href: "/dashboard/comments" },
         { label: "Video Reports", emoji: "🎬", href: `/dashboard/report/${firstVideoId}`, notification: true },
         { label: "Idea Factory", emoji: "💡", href: "/dashboard/ideas" },
+        { label: "Profile", emoji: "👤", href: "/dashboard/profile" },
         { label: "Settings", emoji: "⚙️", href: "/dashboard/settings" },
     ];
 
