@@ -21,6 +21,20 @@ export interface IUser extends Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
+// Cached report interface
+export interface ICachedReport extends Document {
+  userId: string;
+  videoId: string;
+  reportData: any;
+  videoStatistics: {
+    viewCount: number;
+    likeCount: number;
+    commentCount: number;
+  };
+  expiresAt: Date;
+  createdAt: Date;
+}
+
 const UserSchema = new Schema<IUser>({
   name: {
     type: String,
@@ -61,9 +75,16 @@ const UserSchema = new Schema<IUser>({
 
 // Hash password before saving
 UserSchema.pre("save", async function () {
-  if (!this.password || !this.isModified("password")) return;
-  const salt = await bcrypt.genSalt(12);
-  this.password = await bcrypt.hash(this.password, salt);
+  if (!this.isModified("password") || !this.password) {
+    return;
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  } catch (error: any) {
+    throw error;
+  }
 });
 
 // Compare password method
@@ -72,6 +93,27 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string) 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+// Cached Report Schema
+const CachedReportSchema = new Schema<ICachedReport>({
+  userId: { type: String, required: true, index: true },
+  videoId: { type: String, required: true, index: true },
+  reportData: { type: Object, required: true },
+  videoStatistics: {
+    viewCount: Number,
+    likeCount: Number,
+    commentCount: Number,
+  },
+  expiresAt: { type: Date, required: true, index: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+// Clean up old model in development to ensure schema changes are applied
+if (process.env.NODE_ENV === "development" && mongoose.models.User) {
+  delete (mongoose.models as any).User;
+}
+
 const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+const CachedReport = mongoose.models.CachedReport || mongoose.model<ICachedReport>("CachedReport", CachedReportSchema);
 
 export default User;
+export { CachedReport };
