@@ -81,10 +81,12 @@ const DEMO_VIDEOS: Video[] = [
 
 export default function CommentsPage() {
     const [comments, setComments] = useState<Comment[]>([]);
+    const [allComments, setAllComments] = useState<Comment[]>([]); // Store all comments for counting
     const [videos, setVideos] = useState<Video[]>([]);
     const [selectedVideoId, setSelectedVideoId] = useState<string>("all");
     const [replies, setReplies] = useState<Record<string, SmartReply>>({});
     const [loading, setLoading] = useState(true);
+    const [videoLoading, setVideoLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [error, setError] = useState("");
     const [copied, setCopied] = useState<string | null>(null);
@@ -95,39 +97,78 @@ export default function CommentsPage() {
     useEffect(() => {
         async function fetchData() {
             try {
+                if (selectedVideoId !== "all") {
+                    setVideoLoading(true);
+                }
+                
                 // Fetch videos first
                 const videosRes = await fetch("/api/youtube/videos");
+                let videosData = null;
+                let hasRealVideos = false;
+                
                 if (videosRes.ok) {
-                    const videosData = await videosRes.json();
+                    videosData = await videosRes.json();
                     if (videosData.videos && videosData.videos.length > 0) {
                         setVideos(videosData.videos);
+                        hasRealVideos = true;
                     }
                 }
-
-                // Then fetch comments (with video filter if selected)
-                const commentsUrl = selectedVideoId !== "all" ? `/api/youtube/comments?videoId=${selectedVideoId}` : "/api/youtube/comments";
-                const commentsRes = await fetch(commentsUrl);
-                if (!commentsRes.ok) {
-                    const data = await commentsRes.json();
-                    throw new Error(data.error || "Failed to fetch comments");
-                }
-                const data = await commentsRes.json();
-                if (!data.comments || data.comments.length === 0) {
-                    // Auto-activate demo mode if no real comments found
-                    setComments(DEMO_COMMENTS);
+                
+                // If no real videos, use demo videos
+                if (!hasRealVideos) {
                     setVideos(DEMO_VIDEOS);
+                }
+
+                // Fetch ALL comments first for accurate counting
+                const allCommentsRes = await fetch("/api/youtube/comments");
+                let allCommentsData = [];
+                
+                if (allCommentsRes.ok) {
+                    const data = await allCommentsRes.json();
+                    allCommentsData = data.comments || [];
+                    setAllComments(allCommentsData);
+                } else {
+                    // If error, use demo comments
+                    allCommentsData = DEMO_COMMENTS;
+                    setAllComments(DEMO_COMMENTS);
+                }
+
+                // Then filter comments based on selected video
+                let filteredComments = allCommentsData;
+                if (selectedVideoId === "demo") {
+                    // Show a few demo comments
+                    filteredComments = DEMO_COMMENTS.slice(0, 3);
+                } else if (selectedVideoId !== "all") {
+                    filteredComments = allCommentsData.filter((c: Comment) => c.videoId === selectedVideoId);
+                }
+                
+                setComments(filteredComments);
+                
+                // Clear replies only if switching to a completely different video set
+                // But preserve filter state
+                if (selectedVideoId === "demo") {
+                    // Clear replies for demo mode since they're different
+                    setReplies({});
+                    setGenerated(false);
+                }
+                
+                // Set demo mode if no real videos and no real comments
+                if (!hasRealVideos && allCommentsData.length === 0) {
+                    setComments(DEMO_COMMENTS);
+                    setAllComments(DEMO_COMMENTS);
                     setDemoMode(true);
                 } else {
-                    setComments(data.comments);
                     setDemoMode(false);
                 }
             } catch (err: any) {
                 // On error, still show demo mode so feature is always visible
                 setComments(DEMO_COMMENTS);
+                setAllComments(DEMO_COMMENTS);
                 setVideos(DEMO_VIDEOS);
                 setDemoMode(true);
             } finally {
                 setLoading(false);
+                setVideoLoading(false);
             }
         }
         fetchData();
@@ -137,10 +178,12 @@ export default function CommentsPage() {
         if (generating || comments.length === 0) return;
         setGenerating(true);
         try {
+            // Only generate replies for currently filtered comments
+            const commentsToProcess = filteredComments;
             const res = await fetch("/api/youtube/smart-replies", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ comments }),
+                body: JSON.stringify({ comments: commentsToProcess }),
             });
             if (!res.ok) throw new Error("Failed to generate replies");
             const data = await res.json();
@@ -162,16 +205,17 @@ export default function CommentsPage() {
     const filteredComments = useMemo(() => {
         let filtered = comments;
         
-        // Filter by selected video (only if not in demo mode or if demo mode with specific video selection)
-        if (selectedVideoId !== "all") {
-            filtered = filtered.filter(c => c.videoId === selectedVideoId);
+        // Apply intent/priority filter (this preserves filter state across video switches)
+        if (filter === "all") {
+            filtered = comments;
+        } else if (filter === "high") {
+            filtered = comments.filter(c => replies[c.id]?.priority === "high");
+        } else {
+            filtered = comments.filter(c => replies[c.id]?.intent === filter);
         }
         
-        // Then apply intent/priority filter
-        if (filter === "all") return filtered;
-        if (filter === "high") return filtered.filter(c => replies[c.id]?.priority === "high");
-        return filtered.filter(c => replies[c.id]?.intent === filter);
-    }, [comments, replies, filter, selectedVideoId]);
+        return filtered;
+    }, [comments, replies, filter]); // Remove selectedVideoId dependency to preserve filter
 
     // Stats
     const stats = useMemo(() => {
@@ -249,22 +293,48 @@ export default function CommentsPage() {
                         {demoMode && (
                             <span className="text-xs font-bold text-yellow-700 bg-yellow-100 px-2 py-1 rounded-lg">🧪 Demo Mode</span>
                         )}
+                        {videoLoading && (
+                            <Loader2 size={16} className="animate-spin text-accent-red" />
+                        )}
+                        {selectedVideoId !== "all" && !videoLoading && (
+                            <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-lg">
+                                📹 {videos.find(v => v.id === selectedVideoId)?.title?.substring(0, 30) || "Selected"}...
+                            </span>
+                        )}
                     </div>
                     <div className="relative">
                         <select
                             value={selectedVideoId}
                             onChange={(e) => setSelectedVideoId(e.target.value)}
-                            className="w-full sm:w-96 appearance-none bg-white border-4 border-dark-border rounded-2xl px-4 py-3 pr-12 font-bold text-dark-border shadow-[2px_2px_0_#111827] focus:outline-none focus:border-accent-red transition-colors cursor-pointer hover:bg-gray-50"
+                            disabled={videoLoading}
+                            className={`w-full sm:w-96 appearance-none bg-white border-4 border-dark-border rounded-2xl px-4 py-3 pr-12 font-bold text-dark-border shadow-[2px_2px_0_#111827] focus:outline-none focus:border-accent-red transition-colors cursor-pointer hover:bg-gray-50
+                                ${videoLoading ? "opacity-60 cursor-not-allowed" : ""}
+                            `}
                         >
-                            <option value="all">📺 All Videos ({comments.length} comments)</option>
-                            {videos.map((video) => (
-                                <option key={video.id} value={video.id}>
-                                    {video.emoji} {video.title.length > 60 ? video.title.substring(0, 60) + "..." : video.title} ({video.commentCount} comments)
-                                </option>
-                            ))}
+                            <option value="all">📺 All Videos ({allComments.length} comments)</option>
+                            <option value="demo">🧪 Demo Mode (3 sample comments)</option>
+                            {videos.map((video) => {
+                                // Count comments for this specific video from ALL comments (not filtered)
+                                const videoCommentCount = allComments.filter((c: Comment) => c.videoId === video.id).length;
+                                return (
+                                    <option key={video.id} value={video.id}>
+                                        {video.emoji} {video.title.length > 60 ? video.title.substring(0, 60) + "..." : video.title} ({videoCommentCount} comments)
+                                    </option>
+                                );
+                            })}
                         </select>
                         <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-border pointer-events-none" />
                     </div>
+                    {selectedVideoId !== "all" && selectedVideoId !== "demo" && (
+                        <div className="mt-2 text-xs font-bold text-gray-500">
+                            Showing comments for: {videos.find(v => v.id === selectedVideoId)?.title || "Selected Video"}
+                        </div>
+                    )}
+                    {selectedVideoId === "demo" && (
+                        <div className="mt-2 text-xs font-bold text-yellow-700 bg-yellow-50 p-2 rounded-lg border-2 border-yellow-200">
+                            🧪 Demo Mode: Showing sample comments to test AI Reply Studio functionality
+                        </div>
+                    )}
                 </div>
             )}
 
