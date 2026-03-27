@@ -91,13 +91,27 @@ export async function GET() {
                     if (negativeWords.some(word => text.includes(word))) positiveCount -= 0.5;
                 });
                 
-                // Base 65% + bonus for positive comments, capped at 99%
-                sentimentScore = Math.min(99, Math.max(40, Math.round(65 + (positiveCount / comments.length) * 35)));
+                // Calculate engagement quality bonus
+                const viewCount = parseInt(item.statistics.viewCount || "1");
+                const likeCount = parseInt(item.statistics.likeCount || "0");
+                const engagementRate = (likeCount / viewCount) * 100;
+                
+                // High engagement = better sentiment (up to +10 points)
+                const engagementBonus = Math.min(10, engagementRate * 0.5);
+                
+                // Base 65% + bonus for positive comments + engagement bonus, capped at 99%
+                sentimentScore = Math.min(99, Math.max(40, Math.round(65 + (positiveCount / comments.length) * 35 + engagementBonus)));
             }
         } catch (e) {
             console.error(`Error fetching comments for video ${item.id}:`, e);
-            // Fallback to the old pseudo-random formula if fetch fails
-            sentimentScore = 70 + (parseInt(item.statistics.commentCount || "0") % 25);
+            // Fallback: Use a more dynamic formula based on multiple factors
+            const viewCount = parseInt(item.statistics.viewCount || "1");
+            const likeCount = parseInt(item.statistics.likeCount || "0");
+            const commentCount = parseInt(item.statistics.commentCount || "0");
+            
+            // Engagement-based score when comments API fails
+            const engagementRate = (likeCount + commentCount) / viewCount;
+            sentimentScore = Math.min(99, Math.max(40, Math.round(60 + (engagementRate * 100) + (commentCount % 15))));
         }
 
         const emojis = ["🚀", "💻", "📸", "🎨", "💰", "🤖", "🎬", "🔥", "✨"];
