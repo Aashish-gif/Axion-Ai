@@ -30,19 +30,20 @@ export async function GET(request: Request) {
 
     // If a specific videoId is provided, only fetch comments for that video
     if (videoId) {
-      const commentsRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=50&order=relevance`,
-        { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
-      );
-      const commentsData = await commentsRes.json();
-      
-      // Get video details
+      // Get video details first
       const videoRes = await fetch(
         `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}`,
         { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
       );
       const videoData = await videoRes.json();
       const videoTitle = videoData.items?.[0]?.snippet?.title || "Unknown Video";
+
+      // Fetch comments for this specific video
+      const commentsRes = await fetch(
+        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=50&order=relevance`,
+        { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
+      );
+      const commentsData = await commentsRes.json();
 
       if (commentsData.items) {
         const comments = commentsData.items.map((item: any) => ({
@@ -66,7 +67,11 @@ export async function GET(request: Request) {
         });
       }
       
-      return NextResponse.json({ comments: [] });
+      // Return empty comments array if no comments found for this video
+      return NextResponse.json({ 
+        comments: [],
+        channelTitle: user.youtubeChannelTitle || "Your Channel"
+      });
     }
 
     // This is a simplified version. In a real app, you'd iterate through videos.
@@ -79,9 +84,13 @@ export async function GET(request: Request) {
       { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
     );
     const channelData = await channelRes.json();
+    
+    console.log("Channel data:", channelData);
+    
     const uploadsPlaylistId = channelData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
 
     if (!uploadsPlaylistId) {
+       console.log("No uploads playlist found");
        return NextResponse.json({ comments: [] });
     }
 
@@ -91,18 +100,25 @@ export async function GET(request: Request) {
       { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
     );
     const videosData = await videosRes.json();
+    
+    console.log("Videos data:", videosData);
+    
     const videoIds = videosData.items?.map((item: any) => item.snippet.resourceId.videoId) || [];
+    console.log("Video IDs:", videoIds);
 
     // 3. Get comments for these videos (with likeCount + replyCount for prioritization)
     const allComments = [];
     for (const videoId of videoIds) {
+        console.log(`Fetching comments for video: ${videoId}`);
         const commentsRes = await fetch(
             `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=20&order=relevance`,
             { headers: { Authorization: `Bearer ${user.youtubeAccessToken}` } }
         );
         const commentsData = await commentsRes.json();
+        console.log(`Comments data for ${videoId}:`, commentsData);
+        
         if (commentsData.items) {
-            allComments.push(...commentsData.items.map((item: any) => ({
+            const videoComments = commentsData.items.map((item: any) => ({
                 id: item.id,
                 text: item.snippet.topLevelComment.snippet.textDisplay,
                 author: item.snippet.topLevelComment.snippet.authorDisplayName,
@@ -112,7 +128,10 @@ export async function GET(request: Request) {
                 replyCount: item.snippet.totalReplyCount || 0,
                 videoId: videoId,
                 videoTitle: videosData.items.find((v: any) => v.snippet.resourceId.videoId === videoId)?.snippet.title
-            })));
+            }));
+            
+            console.log(`Processed ${videoComments.length} comments for video ${videoId}`);
+            allComments.push(...videoComments);
         }
     }
 
