@@ -15,7 +15,7 @@ export function Sidebar() {
 
     const navItems = [
         { label: "Dashboard", emoji: "📊", href: "/dashboard" },
-        { label: "Comments", emoji: "💬", href: "/dashboard/comments" },
+        { label: "Reply Studio", emoji: "🤖", href: "/dashboard/comments" },
         { label: "Video Reports", emoji: "🎬", href: `/dashboard/report/${firstVideoId}`, notification: true },
         { label: "Idea Factory", emoji: "💡", href: "/dashboard/ideas" },
         { label: "Settings", emoji: "⚙️", href: "/dashboard/settings" },
