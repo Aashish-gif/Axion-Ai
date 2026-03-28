@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ChannelSwitcher } from './ChannelSwitcher';
-import { Search, Bell, LogOut, AlertCircle, TrendingUp, Award, MessageCircle } from 'lucide-react';
+import { Search, Bell, LogOut, AlertCircle, TrendingUp, Award, MessageCircle, Plus } from 'lucide-react';
 import { useSearch } from '@/context/SearchContext';
 import { useRouter } from 'next/navigation';
 
@@ -140,6 +140,15 @@ export function TopBar() {
             </div>
 
             <div className="flex items-center justify-end w-full md:w-auto gap-4">
+                {/* Add Channel Button */}
+                <button
+                    onClick={() => window.location.href = "/api/auth/youtube"}
+                    className="hidden md:flex items-center gap-2 px-3 py-2 bg-accent-red text-white font-bold text-sm rounded-xl border-2 border-dark-border shadow-[2px_2px_0_#111827] hover:bg-red-700 transition-colors"
+                >
+                    <Plus size={16} />
+                    Add Channel
+                </button>
+                
                 {/* Notifications Bell */}
                 <div className="relative">
                     <button 
@@ -246,6 +255,13 @@ export function TopBar() {
                                 <p className="text-xs font-bold text-gray-500 truncate">{userEmail}</p>
                             </div>
                             <div className="space-y-1">
+                                <a 
+                                    href="/dashboard/settings"
+                                    className="w-full text-left px-3 py-2 rounded-lg font-bold text-dark-border hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                >
+                                    <Plus size={14} />
+                                    Add Channel
+                                </a>
                                 <button className="w-full text-left px-3 py-2 rounded-lg font-bold text-dark-border hover:bg-gray-50 transition-colors">Profile Settings</button>
                                 <button 
                                     onClick={handleLogout}
