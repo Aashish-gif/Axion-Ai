@@ -87,14 +87,46 @@
   50% { transform: scale(1.01); box-shadow: 8px 10px 0px #ef4444; }
 }
 
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-pulse-subtle {
   animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
 }
 
 body {
   background-color: var(--color-bg-cream);
   color: var(--color-dark-border);
   font-family: var(--font-dm-sans), Arial, sans-serif;
+}
+
+/* Dark mode styles */
+.dark {
+  --color-bg-cream: #1a1a1a;
+  --color-card-mint: #1e293b;
+  --color-card-yellow: #2d3748;
+  --color-card-blue: #1e3a8a;
+  --color-card-lavender: #2d1b69;
+  --color-dark-border: #e5e7eb;
+  --color-gray-50: #374151;
+  --color-gray-100: #4b5563;
+  --color-gray-200: #6b7280;
+  --color-gray-300: #9ca3af;
+  --color-gray-400: #d1d5db;
+  --color-gray-500: #e5e7eb;
+  --color-gray-600: #f3f4f6;
+  --color-gray-700: #f9fafb;
+  --color-gray-800: #ffffff;
+  --color-gray-900: #ffffff;
+  --color-gray-950: #ffffff;
+  --color-black: #ffffff;
+  --color-white: #000000;
 }
 
 h1, h2, h3, h4, h5, h6 {

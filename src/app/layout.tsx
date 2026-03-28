@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Nunito, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -27,7 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${nunito.variable} ${dmSans.variable} antialiased`}>
-        {children}
+        <LanguageProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
