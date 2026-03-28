@@ -1,0 +1,543 @@
+{
+  "info": {
+    "name": "Axion AI API - Complete Web App",
+    "description": "# 🚀 Axion AI - YouTube Analytics Platform API\n\n**Complete API documentation for the entire Axion AI web application**\n\nAxion AI is a comprehensive YouTube analytics platform that uses artificial intelligence to analyze video comments, generate insights, and help creators optimize their content strategy.\n\n## 🎯 Platform Features\n- **🔍 Sentiment Analysis**: AI-powered comment sentiment analysis\n- **💬 Smart Replies**: Generate contextual responses to comments\n- **💡 Content Ideas**: AI-driven video topic suggestions\n- **📊 Analytics Reports**: Comprehensive performance reports\n- **🌍 Multi-language**: Support for 23+ Indian languages\n- **📺 YouTube Integration**: Seamless channel connection\n- **👥 User Management**: Complete authentication and profile system\n- **⚙️ Settings**: Customizable user preferences\n\n## 🔧 Technical Architecture\n```\nFrontend: Next.js 14 + TypeScript + Tailwind CSS\nBackend: Next.js API Routes + TypeScript\nDatabase: MongoDB + Mongoose ODM\nAuthentication: JWT + Cookies\nAI/ML: OpenAI GPT + Custom NLP Models\nIntegration: YouTube Data API v3 + OAuth 2.0\nDeployment: Vercel + MongoDB Atlas\n```\n\n## 🔐 Authentication System\n- **JWT Tokens**: Secure authentication with 7-day expiration\n- **Cookie Storage**: HttpOnly, Secure, SameSite protection\n- **Password Security**: Bcrypt hashing with 12 rounds\n- **Session Management**: Automatic token refresh and logout\n\n## 🌐 API Base URLs\n```\nDevelopment: http://localhost:3000\nProduction: https://api.axionix.ai\n```\n\n## 📈 Rate Limits by Plan\n- **Free**: 100 requests/hour\n- **Pro**: 1,000 requests/hour\n- **Agency**: 10,000 requests/hour\n\n## 🛡️ Security Features\n- ✅ HTTPS enforcement in production\n- ✅ Input validation and sanitization\n- ✅ SQL injection prevention\n- ✅ XSS protection\n- ✅ CSRF protection with state tokens\n- ✅ Rate limiting on all endpoints\n- ✅ Environment-based configuration\n\n## 📞 Support & Resources\n- **API Support**: api-support@axionix.ai\n- **Documentation**: This Postman collection\n- **Status Page**: https://status.axionix.ai\n- **Developer Discord**: https://discord.gg/axionai",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "axion-ai-complete-api",
+    "_postman_id": "axion-ai-v2.0"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication System",
+      "description": "## User Authentication & Authorization\n\nComplete authentication system with registration, login, logout, and session management.\n\n### 🔄 Authentication Flow\n1. **Register** → Create account + JWT token\n2. **Login** → Validate credentials + Set cookie\n3. **Protected Routes** → Auto-include JWT token\n4. **Logout** → Clear cookie + Invalidate session\n\n### 🍪 Cookie Configuration\n- **Name**: `axion_auth`\n- **Type**: HttpOnly + Secure (production)\n- **Duration**: 7 days\n- **SameSite**: Lax",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "### 📝 Register New User Account\n\nCreates a new user account with automatic JWT token generation.\n\n#### ✅ Request Body\n```json\n{\n  \"name\": \"string (2-50 chars)\",\n  \"email\": \"string (valid email)\",\n  \"password\": \"string (min 6 chars)\"\n}\n```\n\n#### 📤 Response (201 Created)\n```json\n{\n  \"message\": \"Account created successfully\",\n  \"user\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  }\n}\n```\n\n#### 🍪 Cookie Set\n- **axion_auth**: JWT token (7 days)\n\n#### ⚠️ Error Responses\n- **400**: Missing fields or invalid password\n- **409**: Email already exists\n- **500**: Server error"
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "### 🔐 User Login\n\nAuthenticates user credentials and sets JWT cookie.\n\n#### ✅ Request Body\n```json\n{\n  \"email\": \"string\",\n  \"password\": \"string\"\n}\n```\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"message\": \"Logged in successfully\",\n  \"user\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  }\n}\n```\n\n#### 🍪 Cookie Set\n- **axion_auth**: JWT token (7 days)\n\n#### ⚠️ Error Responses\n- **400**: Missing email/password\n- **401**: Invalid credentials\n- **500**: Server error"
+          },
+          "response": []
+        },
+        {
+          "name": "User Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "### 🚪 User Logout\n\nClears authentication cookie and terminates session.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"message\": \"Logged out successfully\"\n}\n```\n\n#### 🍪 Cookie Cleared\n- **axion_auth**: Expired and removed\n\n#### 🔒 Authentication Required\n- JWT token required (auto-included from cookie)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "### 👤 Get Authenticated User\n\nReturns current user profile information.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"user\": {\n    \"id\": \"user_id\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"youtubeConnected\": true,\n    \"language\": \"en\"\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 User Profile Management",
+      "description": "## User Profile & Settings\n\nComplete user profile management including YouTube integration and preferences.\n\n### 📋 Profile Features\n- **Account Information**: Name, email, avatar\n- **YouTube Integration**: Channel connection status\n- **Preferences**: Language, notifications, settings\n- **Usage Analytics**: Reports, API calls, storage",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "### 📊 Get Complete User Profile\n\nReturns comprehensive user profile with all settings and integrations.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"user\": {\n    \"id\": \"user_id\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"youtubeConnected\": true,\n    \"youtubeChannelTitle\": \"My Channel\",\n    \"youtubeChannelThumbnail\": \"https://...\",\n    \"language\": \"en\",\n    \"emailNotifications\": true,\n    \"createdAt\": \"2024-01-15T10:30:00.000Z\"\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"newemail@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "### ✏️ Update User Profile\n\nUpdates user profile information.\n\n#### ✅ Request Body\n```json\n{\n  \"name\": \"string (optional)\",\n  \"email\": \"string (optional)\"\n}\n```\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"message\": \"Profile updated successfully\",\n  \"user\": {\n    \"name\": \"Updated Name\",\n    \"email\": \"newemail@example.com\"\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📺 YouTube Integration",
+      "description": "## YouTube Channel Integration\n\nComplete YouTube API integration with OAuth 2.0 authentication and data synchronization.\n\n### 🔗 Integration Features\n- **OAuth 2.0 Flow**: Secure YouTube authentication\n- **Channel Data**: Complete channel information\n- **Video Catalog**: All videos with metadata\n- **Comments**: Full comment threads\n- **Analytics**: Performance metrics and insights\n\n### 📊 Data Points\n- Channel info, videos, comments, analytics\n- Real-time synchronization\n- Performance metrics",
+      "item": [
+        {
+          "name": "Connect YouTube (OAuth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/youtube",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "youtube"]
+            },
+            "description": "### 🔗 Initiate YouTube OAuth\n\nStarts YouTube OAuth 2.0 flow to connect user's channel.\n\n#### 🔄 OAuth Flow\n1. Redirect to Google consent screen\n2. User grants permissions\n3. Redirect back with authorization code\n4. Exchange code for access tokens\n5. Fetch and store channel data\n\n#### 📤 Response (302 Redirect)\n```http\nLocation: https://accounts.google.com/o/oauth2/v2/auth?...\n```\n\n#### 🔒 Authentication Required\n- JWT token required\n\n#### 📋 Required Scopes\n- `youtube.readonly`\n- `youtubepartner`\n- `youtube.force-ssl`"
+          },
+          "response": []
+        },
+        {
+          "name": "Disconnect YouTube",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/disconnect-youtube",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "disconnect-youtube"]
+            },
+            "description": "### 🔌 Disconnect YouTube Channel\n\nRemoves YouTube integration and clears all related data.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"message\": \"YouTube channel disconnected successfully\"\n}\n```\n\n#### 🗑️ Data Cleanup\n- Channel information removed\n- Video data deleted\n- OAuth tokens revoked\n- Cache cleared\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        },
+        {
+          "name": "Get YouTube Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "status"]
+            },
+            "description": "### 📊 Get YouTube Connection Status\n\nReturns YouTube integration status and channel information.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"connected\": true,\n  \"channel\": {\n    \"id\": \"UC1234567890\",\n    \"title\": \"My Channel\",\n    \"thumbnail\": \"https://...\",\n    \"subscriberCount\": 10000\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel Videos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/videos",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "videos"]
+            },
+            "description": "### 📹 Get Channel Videos\n\nReturns all videos from connected YouTube channel.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"videos\": [\n    {\n      \"id\": \"video123\",\n      \"title\": \"My Video\",\n      \"thumbnail\": \"https://...\",\n      \"publishedAt\": \"2024-01-15T10:30:00.000Z\",\n      \"viewCount\": 1000,\n      \"likeCount\": 50,\n      \"commentCount\": 25\n    }\n  ]\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required\n- YouTube channel must be connected"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Video Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/comments?videoId={{video_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "comments"],
+              "query": [
+                {
+                  "key": "videoId",
+                  "value": "{{video_id}}",
+                  "description": "YouTube video ID"
+                }
+              ]
+            },
+            "description": "### 💬 Get Video Comments\n\nRetrieves comments for a specific video with sentiment analysis.\n\n#### 🔍 Query Parameters\n- `videoId` (required): YouTube video ID\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"comments\": [\n    {\n      \"id\": \"comment123\",\n      \"text\": \"Great video!\",\n      \"author\": \"John\",\n      \"publishedAt\": \"2024-01-15T10:30:00.000Z\",\n      \"likeCount\": 5,\n      \"sentiment\": \"positive\",\n      \"sentimentScore\": 0.85\n    }\n  ]\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required\n- YouTube channel must be connected"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "stats"]
+            },
+            "description": "### 📊 Get Channel Analytics\n\nReturns comprehensive channel statistics and analytics.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"channelStats\": {\n    \"totalSubscribers\": 10000,\n    \"totalViews\": 1000000,\n    \"totalVideos\": 50,\n    \"avgViewsPerVideo\": 20000,\n    \"engagementRate\": 0.05,\n    \"growthRate\": 0.1\n  },\n  \"sentimentAnalysis\": {\n    \"totalComments\": 5000,\n    \"avgSentimentScore\": 0.75,\n    \"positiveComments\": 3500,\n    \"neutralComments\": 1200,\n    \"negativeComments\": 300\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required\n- YouTube channel must be connected"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI-Powered Features",
+      "description": "## Artificial Intelligence Features\n\nAdvanced AI capabilities for content analysis, generation, and insights.\n\n### 🧠 AI Capabilities\n- **Sentiment Analysis**: Advanced NLP for comment sentiment\n- **Smart Replies**: Contextual response generation\n- **Idea Generation**: AI-powered content suggestions\n- **Video Reports**: Comprehensive analysis reports\n- **Chat Assistant**: Interactive AI chat for insights\n\n### 📊 AI Models\n- OpenAI GPT-4 for text generation\n- Custom sentiment analysis models\n- Content recommendation algorithms\n- Engagement prediction models",
+      "item": [
+        {
+          "name": "Generate Video Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/report/{{video_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "report", "{{video_id}}"]
+            },
+            "description": "### 📊 Generate AI Video Report\n\nCreates comprehensive AI analysis report for a specific video.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"report\": {\n    \"videoId\": \"video123\",\n    \"sentimentScore\": 0.85,\n    \"overallSummary\": \"Audience response is overwhelmingly positive...\",\n    \"strengths\": [\n      \"Clear explanation\",\n      \"Good pacing\",\n      \"High engagement\"\n    ],\n    \"improvements\": [\n      \"Better lighting\",\n      \"Longer duration\"\n    ],\n    \"nextVideoIdea\": \"Deep dive into advanced topics\",\n    \"audienceFeedback\": {\n      \"mostPositive\": \"Great tutorial!\",\n      \"mostCritical\": \"Audio quality could be better\",\n      \"commonQuestions\": [\"Can you make a follow-up?\"]\n    },\n    \"engagementMetrics\": {\n      \"sentimentBreakdown\": {\n        \"positive\": 0.75,\n        \"neutral\": 0.20,\n        \"negative\": 0.05\n      },\n      \"topKeywords\": [\"helpful\", \"clear\", \"tutorial\", \"learned\"],\n      \"engagementTrend\": \"increasing\"\n    }\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required\n- YouTube channel must be connected"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Smart Replies",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": [\n    {\n      \"id\": \"comment123\",\n      \"text\": \"Great tutorial! Can you make one on React?\",\n      \"author\": \"John\"\n    },\n    {\n      \"id\": \"comment456\",\n      \"text\": \"This helped me so much, thank you!\",\n      \"author\": \"Sarah\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/youtube/smart-replies",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "smart-replies"]
+            },
+            "description": "### 💬 Generate Smart Replies\n\nCreates AI-powered, contextual responses to comments.\n\n#### ✅ Request Body\n```json\n{\n  \"comments\": [\n    {\n      \"id\": \"string\",\n      \"text\": \"string\",\n      \"author\": \"string\"\n    }\n  ]\n}\n```\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"replies\": {\n    \"comment123\": {\n      \"reply\": \"Thanks for the suggestion! I'm actually working on a React tutorial - coming soon! 🚀\",\n      \"intent\": \"request\",\n      \"emoji\": \"🚀\",\n      \"priority\": \"high\",\n      \"confidence\": 0.92\n    },\n    \"comment456\": {\n      \"reply\": \"You're very welcome! So glad it helped you understand the concept better! 🎉\",\n      \"intent\": \"gratitude\",\n      \"emoji\": \"🎉\",\n      \"priority\": \"medium\",\n      \"confidence\": 0.88\n    }\n  },\n  \"metadata\": {\n    \"totalProcessed\": 2,\n    \"avgConfidence\": 0.9,\n    \"processingTime\": \"1.2s\"\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Video Ideas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"count\": 5,\n  \"category\": \"tutorial\",\n  \"targetAudience\": \"beginners\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/ideas/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "ideas", "generate"]
+            },
+            "description": "### 💡 Generate Video Ideas\n\nCreates AI-powered video content ideas based on channel analysis.\n\n#### ✅ Request Body\n```json\n{\n  \"count\": \"number (default: 5)\",\n  \"category\": \"string (optional)\",\n  \"targetAudience\": \"string (optional)\"\n}\n```\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"ideas\": [\n    {\n      \"title\": \"10 JavaScript Tips Every Beginner Should Know\",\n      \"description\": \"Essential JavaScript tips and tricks for beginners...\",\n      \"estimatedViews\": \"10K-50K\",\n      \"difficulty\": \"beginner\",\n      \"category\": \"tutorial\",\n      \"keywords\": [\"javascript\", \"tips\", \"beginner\"],\n      \"confidence\": 0.85,\n      \"reasoning\": \"High engagement on similar content in your niche\"\n    },\n    {\n      \"title\": \"Building Your First React App from Scratch\",\n      \"description\": \"Complete guide to building a React application...\",\n      \"estimatedViews\": \"15K-75K\",\n      \"difficulty\": \"intermediate\",\n      \"category\": \"project\",\n      \"keywords\": [\"react\", \"project\", \"tutorial\"],\n      \"confidence\": 0.92,\n      \"reasoning\": \"React tutorials perform well in your channel analytics\"\n    }\n  ],\n  \"metadata\": {\n    \"totalIdeas\": 5,\n    \"avgConfidence\": 0.88,\n    \"basedOn\": \"channel_analytics\",\n    \"generatedAt\": \"2024-01-20T14:30:00.000Z\"\n  }\n```\n\n#### 🔒 Authentication Required\n- JWT token required\n- YouTube channel must be connected"
+          },
+          "response": []
+        },
+        {
+          "name": "AI Chat Assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What's my best performing video and why?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/youtube/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "chat"]
+            },
+            "description": "### 🤖 AI Chat Assistant\n\nInteractive AI assistant for channel analytics and insights.\n\n#### ✅ Request Body\n```json\n{\n  \"message\": \"string\",\n  \"context\": \"string (optional)\"\n}\n```\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"response\": \"Based on your channel analytics, your best performing video is 'JavaScript Basics for Beginners' with 50K views and a 92% positive sentiment score. The high performance is due to clear explanations, good pacing, and addressing a common pain point for beginners in your audience.\",\n  \"data\": {\n    \"videoId\": \"video123\",\n    \"title\": \"JavaScript Basics for Beginners\",\n    \"views\": 50000,\n    \"sentimentScore\": 0.92,\n    \"engagementRate\": 0.08\n  },\n  \"confidence\": 0.94,\n  \"sources\": [\"channel_analytics\", \"comment_analysis\", \"performance_data\"]\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required\n- YouTube channel must be connected"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Dashboard & Settings",
+      "description": "## Dashboard Settings & Configuration\n\nComplete settings management for user preferences, notifications, and app configuration.\n\n### 📋 Settings Categories\n- **Notifications**: Email and push notification preferences\n- **Language**: Multi-language support (23+ languages)\n- **Privacy**: Data sharing and privacy settings\n- **Appearance**: Theme and display preferences\n- **API**: API keys and integration settings\n\n### 🌍 Supported Languages\n- English, Hindi, Gujarati, Marathi, Punjabi, Bengali, Tamil, Telugu, Malayalam, Kannada, Oriya, Assamese, Urdu, Kashmiri, Nepali, Konkani, Maithili, Sanskrit, Dogri, Bodo, Manipuri, Santali, Goan Konkani",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "settings"]
+            },
+            "description": "### ⚙️ Get User Settings\n\nReturns all user settings and preferences.\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"user\": {\n    \"id\": \"user_id\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"emailNotifications\": true,\n    \"weeklyDigest\": false,\n    \"negativeSentimentAlerts\": true,\n    \"youtubeConnected\": true,\n    \"language\": \"en\"\n  },\n  \"settings\": {\n    \"language\": \"en\",\n    \"theme\": \"light\",\n    \"timezone\": \"UTC\"\n  },\n  \"usage\": {\n    \"reportsGenerated\": 12,\n    \"reportsLimit\": 1000,\n    \"plan\": \"Pro\",\n    \"planStatus\": \"Active\",\n    \"price\": \"$19/month\",\n    \"nextBilling\": \"Oct 12, 2024\"\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailNotifications\": true,\n  \"weeklyDigest\": false,\n  \"negativeSentimentAlerts\": false,\n  \"language\": \"hi\",\n  \"theme\": \"dark\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "settings"]
+            },
+            "description": "### ✏️ Update User Settings\n\nUpdates user preferences and settings.\n\n#### ✅ Request Body\n```json\n{\n  \"emailNotifications\": \"boolean\",\n  \"weeklyDigest\": \"boolean\",\n  \"negativeSentimentAlerts\": \"boolean\",\n  \"language\": \"string (language code)\",\n  \"theme\": \"string (light/dark)\"\n}\n```\n\n#### 🌍 Supported Languages\n- `en` - English\n- `hi` - Hindi\n- `gu` - Gujarati\n- `mr` - Marathi\n- `pa` - Punjabi\n- `bn` - Bengali\n- `ta` - Tamil\n- `te` - Telugu\n- `ml` - Malayalam\n- `kn` - Kannada\n- And 15 more Indian languages\n\n#### 📤 Response (200 OK)\n```json\n{\n  \"message\": \"Settings updated successfully\",\n  \"settings\": {\n    \"emailNotifications\": true,\n    \"weeklyDigest\": false,\n    \"negativeSentimentAlerts\": false,\n    \"language\": \"hi\",\n    \"theme\": \"dark\"\n  }\n}\n```\n\n#### 🔒 Authentication Required\n- JWT token required"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set JWT token from cookie if available",
+          "if (!pm.environment.get('jwt_token') && pm.cookies.has('axion_auth')) {",
+          "    pm.environment.set('jwt_token', pm.cookies.get('axion_auth'));",
+          "}",
+          "",
+          "// Add request timestamp for debugging",
+          "pm.environment.set('request_timestamp', new Date().toISOString());",
+          "",
+          "// Increment request counter",
+          "const counter = pm.environment.get('request_counter') || 0;",
+          "pm.environment.set('request_counter', parseInt(counter) + 1);",
+          "",
+          "// Log request details",
+          "console.log('🚀 Request #' + (parseInt(counter) + 1) + ':', {",
+          "    method: pm.request.method,",
+          "    url: pm.request.url.toString(),",
+          "    timestamp: new Date().toISOString()",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Success response validation",
+          "if (pm.response.code >= 200 && pm.response.code < 300) {",
+          "    pm.test('✅ Success Status Code', () => {",
+          "        pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+          "    });",
+          "    ",
+          "    // JSON validation",
+          "    try {",
+          "        const jsonData = pm.response.json();",
+          "        pm.test('📄 Valid JSON Response', () => {",
+          "            pm.expect(jsonData).to.be.an('object');",
+          "        });",
+          "        ",
+          "        // Success field check",
+          "        if (jsonData.success !== undefined) {",
+          "            pm.test('🎯 Success Field True', () => {",
+          "                pm.expect(jsonData.success).to.be.true;",
+          "            });",
+          "        }",
+          "        ",
+          "        // Message field check",
+          "        if (jsonData.message) {",
+          "            pm.test('📝 Message Present', () => {",
+          "                pm.expect(jsonData.message).to.be.a('string');",
+          "            });",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('❌ JSON Parse Error:', e.message);",
+          "    }",
+          "} else {",
+          "    pm.test('⚠️ Error Response Handled', () => {",
+          "        pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404, 429, 500]);",
+          "    });",
+          "    ",
+          "    // Log error details",
+          "    try {",
+          "        const errorData = pm.response.json();",
+          "        console.log('❌ Error Response:', {",
+          "            status: pm.response.code,",
+n            "            error: errorData.error || errorData.message",
+          "        });",
+          "    } catch (e) {",
+          "        console.log('❌ Error Response (non-JSON):', pm.response.text());",
+          "    }",
+          "}",
+          "",
+          "// Performance checks",
+          "pm.test('⚡ Response Time < 3s', () => {",
+          "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+          "});",
+          "",
+          "pm.test('🚀 Response Time < 1s', () => {",
+          "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+          "});",
+          "",
+          "// Security headers check",
+          "if (pm.response.headers.has('Content-Security-Policy')) {",
+          "    pm.test('🛡️ CSP Header Present', () => {",
+          "        pm.expect(pm.response.headers.get('Content-Security-Policy')).to.exist;",
+          "    });",
+          "}",
+          "",
+          "// Log performance metrics",
+          "const counter = pm.environment.get('request_counter');",
+          "console.log('📊 Request #' + counter + ' Complete:', {",
+          "    url: pm.request.url.toString(),",
+          "    method: pm.request.method,",
+n            "    status: pm.response.code,",
+          "    time: pm.response.responseTime + 'ms',",
+          "    timestamp: pm.environment.get('request_timestamp')",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "🌐 API Base URL\n\nDevelopment: http://localhost:3000\nProduction: https://api.axionix.ai"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "description": "🔐 JWT Authentication Token\n\nAuto-populated from axion_auth cookie after login. Can be set manually for testing."
+    },
+    {
+      "key": "video_id",
+      "value": "dQw4w9WgXcQ",
+      "type": "string",
+      "description": "📺 YouTube Video ID\n\nDefault: Rick Astley video for testing.\nReplace with actual video IDs from your channel."
+    },
+    {
+      "key": "channel_id",
+      "value": "UCuAXFkgsw1L7xaCfndhlJqA",
+      "type": "string",
+      "description": "📺 YouTube Channel ID\n\nDefault: Example channel ID.\nReplace with your actual YouTube channel ID."
+    },
+    {
+      "key": "request_counter",
+      "value": "0",
+      "type": "number",
+      "description": "📊 Request Counter\n\nAuto-incremented for debugging and analytics tracking."
+    },
+    {
+      "key": "request_timestamp",
+      "value": "",
+      "type": "string",
+      "description": "⏰ Request Timestamp\n\nAuto-set to ISO timestamp for each request."
+    }
+  ]
+}

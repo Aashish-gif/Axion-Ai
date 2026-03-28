@@ -1,0 +1,497 @@
+{
+  "info": {
+    "name": "Axion AI API - Complete Web App",
+    "description": "Complete API documentation for entire Axion AI web application. Axion AI is a comprehensive YouTube analytics platform that uses artificial intelligence to analyze video comments, generate insights, and help creators optimize their content strategy.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "axion-ai-complete-api",
+    "_postman_id": "axion-ai-v2.0"
+  },
+  "item": [
+    {
+      "name": "Authentication System",
+      "description": "User authentication and authorization system with registration, login, logout, and session management.",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user account with automatic JWT token generation."
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticate user credentials and set JWT cookie."
+          },
+          "response": []
+        },
+        {
+          "name": "User Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Clear authentication cookie and terminate session."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Returns current user profile information."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Profile Management",
+      "description": "User profile and settings management including YouTube integration and preferences.",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "Returns comprehensive user profile with all settings and integrations."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"newemail@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            },
+            "description": "Updates user profile information."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "YouTube Integration",
+      "description": "YouTube channel integration with OAuth 2.0 authentication and data synchronization.",
+      "item": [
+        {
+          "name": "Connect YouTube (OAuth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/youtube",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "youtube"]
+            },
+            "description": "Starts YouTube OAuth 2.0 flow to connect user's channel."
+          },
+          "response": []
+        },
+        {
+          "name": "Disconnect YouTube",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/disconnect-youtube",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "disconnect-youtube"]
+            },
+            "description": "Removes YouTube integration and clears all related data."
+          },
+          "response": []
+        },
+        {
+          "name": "Get YouTube Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "status"]
+            },
+            "description": "Returns YouTube integration status and channel information."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel Videos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/videos",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "videos"]
+            },
+            "description": "Returns all videos from connected YouTube channel."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Video Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/comments?videoId={{video_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "comments"],
+              "query": [
+                {
+                  "key": "videoId",
+                  "value": "{{video_id}}",
+                  "description": "YouTube video ID"
+                }
+              ]
+            },
+            "description": "Retrieves comments for a specific video with sentiment analysis."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "stats"]
+            },
+            "description": "Returns comprehensive channel statistics and analytics."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI-Powered Features",
+      "description": "Advanced AI capabilities for content analysis, generation, and insights.",
+      "item": [
+        {
+          "name": "Generate Video Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/youtube/report/{{video_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "report", "{{video_id}}"]
+            },
+            "description": "Creates comprehensive AI analysis report for a specific video."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Smart Replies",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": [\n    {\n      \"id\": \"comment123\",\n      \"text\": \"Great tutorial! Can you make one on React?\",\n      \"author\": \"John\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/youtube/smart-replies",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "smart-replies"]
+            },
+            "description": "Creates AI-powered, contextual responses to comments."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Video Ideas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"count\": 5,\n  \"category\": \"tutorial\",\n  \"targetAudience\": \"beginners\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/ideas/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "ideas", "generate"]
+            },
+            "description": "Creates AI-powered video content ideas based on channel analysis."
+          },
+          "response": []
+        },
+        {
+          "name": "AI Chat Assistant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What's my best performing video and why?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/youtube/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "youtube", "chat"]
+            },
+            "description": "Interactive AI assistant for channel analytics and insights."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Settings",
+      "description": "Dashboard settings and configuration for user preferences and app settings.",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "settings"]
+            },
+            "description": "Returns all user settings and preferences."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailNotifications\": true,\n  \"weeklyDigest\": false,\n  \"negativeSentimentAlerts\": false,\n  \"language\": \"hi\",\n  \"theme\": \"dark\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "settings"]
+            },
+            "description": "Updates user preferences and settings."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set JWT token from cookie if available",
+          "if (!pm.environment.get('jwt_token') && pm.cookies.has('axion_auth')) {",
+          "    pm.environment.set('jwt_token', pm.cookies.get('axion_auth'));",
+          "}",
+          "",
+          "// Add request timestamp for debugging",
+          "pm.environment.set('request_timestamp', new Date().toISOString());",
+          "",
+          "// Increment request counter",
+          "const counter = pm.environment.get('request_counter') || 0;",
+          "pm.environment.set('request_counter', parseInt(counter) + 1);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Success response validation",
+          "if (pm.response.code >= 200 && pm.response.code < 300) {",
+          "    pm.test('Status code is successful', () => {",
+          "        pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+          "    });",
+          "    ",
+          "    // Check for JSON response",
+          "    try {",
+          "        const jsonData = pm.response.json();",
+          "        pm.test('Response is valid JSON', () => {",
+          "            pm.expect(jsonData).to.be.an('object');",
+          "        });",
+          "        ",
+          "        // Check for success field if present",
+          "        if (jsonData.success !== undefined) {",
+          "            pm.test('Success field is true', () => {",
+          "                pm.expect(jsonData.success).to.be.true;",
+          "            });",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('Response is not JSON:', e.message);",
+          "    }",
+          "} else {",
+          "    pm.test('Error response handled', () => {",
+          "        pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404, 429, 500]);",
+          "    });",
+          "}",
+          "",
+          "// Response time check",
+          "pm.test('Response time < 2000ms', () => {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "API Base URL - Set to http://localhost:3000 for development or https://api.axionix.ai for production"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "description": "JWT Authentication Token - Auto-populated from axion_auth cookie after login"
+    },
+    {
+      "key": "video_id",
+      "value": "dQw4w9WgXcQ",
+      "type": "string",
+      "description": "YouTube Video ID - Default: Rick Astley video for testing"
+    },
+    {
+      "key": "channel_id",
+      "value": "UCuAXFkgsw1L7xaCfndhlJqA",
+      "type": "string",
+      "description": "YouTube Channel ID - Default: Example channel ID"
+    },
+    {
+      "key": "request_counter",
+      "value": "0",
+      "type": "number",
+      "description": "Request Counter - Auto-incremented for debugging"
+    },
+    {
+      "key": "request_timestamp",
+      "value": "",
+      "type": "string",
+      "description": "Request Timestamp - Auto-set to ISO timestamp for each request"
+    }
+  ]
+}

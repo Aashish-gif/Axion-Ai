@@ -52,67 +52,193 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
-// Simple translation dictionary
+// Comprehensive translations for all UI elements
 const translations: Record<Language, Record<string, string>> = {
   en: {
-    'app.title': 'Axion AI',
+    // Navigation
+    'nav.dashboard': 'Dashboard',
+    'nav.comments': 'Reply Studio',
+    'nav.reports': 'Video Reports',
+    'nav.ideas': 'Idea Factory',
+    'nav.settings': 'Settings',
+    'nav.profile': 'Profile',
+    'nav.logout': 'Logout',
+    
+    // Dashboard
     'dashboard.title': 'Dashboard',
+    'dashboard.welcome': 'Welcome back',
+    'dashboard.overview': 'Overview',
+    'dashboard.analytics': 'Analytics',
+    'dashboard.recent': 'Recent Videos',
+    'dashboard.quick_actions': 'Quick Actions',
+    'dashboard.analyze_video': 'Analyze Video',
+    'dashboard.view_reports': 'View Reports',
+    'dashboard.manage_comments': 'Manage Comments',
+    
+    // Video Reports
+    'reports.title': 'Video Reports',
+    'reports.sentiment': 'Sentiment Score',
+    'reports.comments': 'Comments Analyzed',
+    'reports.views': 'Views',
+    'reports.likes': 'Likes',
+    'reports.download': 'Download Report',
+    'reports.back': 'Back to Dashboard',
+    'reports.summary': 'Executive Summary',
+    'reports.strengths': "What's Working",
+    'reports.improvements': 'Areas to Improve',
+    'reports.next_video': 'Next Video Idea',
+    
+    // Comments
+    'comments.title': 'Reply Studio',
+    'comments.pending': 'Pending Replies',
+    'comments.smart_reply': 'Smart Reply',
+    'comments.analyze': 'Analyze Comments',
+    
+    // Settings
     'settings.title': 'Settings',
+    'settings.notifications': 'Notifications',
+    'settings.email_notifications': 'Email Notifications',
+    'settings.email_desc': 'Receive emails when reports are ready',
+    'settings.dark_mode': 'Dark Mode',
+    'settings.dark_mode_desc': 'Toggle between light and dark theme',
+    'settings.language': 'Language',
+    'settings.language_desc': 'Choose your preferred language',
+    'settings.channels': 'Connected Channels',
+    'settings.connect': 'Connect Channel',
+    'settings.disconnect': 'Disconnect',
+    
+    // Profile
     'profile.title': 'Profile',
-    'comments.title': 'Comments',
-    'reports.title': 'Reports',
-    'dark_mode': 'Dark Mode',
-    'email_notifications': 'Email Notifications',
-    'language': 'Language',
-    'connect_channel': 'Connect Channel',
-    'disconnect': 'Disconnect',
-    'add_channel': 'Add Channel',
-    'download_report': 'Download Report',
-    'sentiment_score': 'Sentiment Score',
-    'comments_analyzed': 'Comments Analyzed',
-    'views': 'Views',
-    'likes': 'Likes',
-    'shares': 'Shares',
+    'profile.info': 'Profile Information',
+    'profile.connected': 'Connected Channels',
+    'profile.add_channel': 'Add Channel',
+    
+    // Common
+    'common.save': 'Save',
+    'common.cancel': 'Cancel',
+    'common.delete': 'Delete',
+    'common.edit': 'Edit',
+    'common.loading': 'Loading...',
+    'common.error': 'Error',
+    'common.success': 'Success',
+    'common.on': 'ON',
+    'common.off': 'OFF',
+    'common.yes': 'Yes',
+    'common.no': 'No',
   },
   gu: {
-    'app.title': 'એક્સિયન AI',
+    // Navigation
+    'nav.dashboard': 'ડેશબોર્ડ',
+    'nav.comments': 'રિપ્લાય સ્ટુડિયો',
+    'nav.reports': 'વિડિયો રિપોર્ટ્સ',
+    'nav.ideas': 'આઇડિયા ફેક્ટરી',
+    'nav.settings': 'સેટિંગ્સ',
+    'nav.profile': 'પ્રોફાઇલ',
+    'nav.logout': 'લોગઆઉટ',
+    
+    // Dashboard
     'dashboard.title': 'ડેશબોર્ડ',
+    'dashboard.welcome': 'પાછા આવતાં સ્વાગત છે',
+    'dashboard.overview': 'ઓવરવ્યૂ',
+    'dashboard.analytics': 'એનાલિટિક્સ',
+    'dashboard.recent': 'તાજેતરના વિડિયો',
+    'dashboard.quick_actions': 'ઝડપી ક્રિયાઓ',
+    'dashboard.analyze_video': 'વિડિયો એનાલાઈઝ કરો',
+    'dashboard.view_reports': 'રિપોર્ટ્સ જુઓ',
+    'dashboard.manage_comments': 'કોમેન્ટ્સ મેનેજ કરો',
+    
+    // Video Reports
+    'reports.title': 'વિડિયો રિપોર્ટ્સ',
+    'reports.sentiment': 'સેન્ટિમેન્ટ સ્કોર',
+    'reports.comments': 'ટિપ્પણીઓનું વિશ્લેષણ',
+    'reports.views': 'વ્યૂઝ',
+    'reports.likes': 'લાઇક્સ',
+    'reports.download': 'રિપોર્ટ ડાઉનલોડ કરો',
+    'reports.back': 'ડેશબોર્ડ પર પાછા',
+    'reports.summary': 'કાર્યકારી સારાંશ',
+    
+    // Comments
+    'comments.title': 'રિપ્લાય સ્ટુડિયો',
+    
+    // Settings
     'settings.title': 'સેટિંગ્સ',
+    'settings.notifications': 'નોટિફિકેશન્સ',
+    'settings.email_notifications': 'ઇમેઇલ નોટિફિકેશન્સ',
+    'settings.email_desc': 'જ્યારે રિપોર્ટ તૈયાર હોય ત્યારે ઇમેઇલ મેળવો',
+    'settings.dark_mode': 'ડાર્ક મોડ',
+    'settings.dark_mode_desc': 'લાઇટ અને ડાર્ક થીમ વચ્ચે ટોગલ કરો',
+    'settings.language': 'ભાષા',
+    'settings.language_desc': 'તમારી પસંદગીની ભાષા પસંદ કરો',
+    'settings.channels': 'કનેક્ટેડ ચેનલ્સ',
+    'settings.connect': 'ચેનલ કનેક્ટ કરો',
+    'settings.disconnect': 'ડિસ્કનેક્ટ કરો',
+    
+    // Profile
     'profile.title': 'પ્રોફાઇલ',
-    'comments.title': 'ટિપ્પણીઓ',
-    'reports.title': 'રિપોર્ટ્સ',
-    'dark_mode': 'ડાર્ક મોડ',
-    'email_notifications': 'ઇમેલ સૂચનાઓ',
-    'language': 'ભાષા',
-    'connect_channel': 'ચેનલ જોડો',
-    'disconnect': 'ડિસ્કનેક્ટ',
-    'add_channel': 'ચેનલ ઉમેરો',
-    'download_report': 'રિપોર્ટ ડાઉનલોડ કરો',
-    'sentiment_score': 'સેન્ટિમેન્ટ સ્કોર',
-    'comments_analyzed': 'ટિપ્પણીઓનું વિશ્લેષણ',
-    'views': 'વ્યૂઝ',
-    'likes': 'લાઇક્સ',
-    'shares': 'શેર્સ',
+    
+    // Common
+    'common.save': 'સેવ કરો',
+    'common.cancel': 'રદ કરો',
+    'common.loading': 'લોડ થઈ રહ્યું છે...',
+    'common.on': 'ચાલુ',
+    'common.off': 'બંધ',
   },
   hi: {
-    'app.title': 'एक्सियन AI',
+    // Navigation
+    'nav.dashboard': 'डैशबोर्ड',
+    'nav.comments': 'रिप्लाई स्टूडियो',
+    'nav.reports': 'वीडियो रिपोर्ट्स',
+    'nav.ideas': 'आइडिया फैक्ट्री',
+    'nav.settings': 'सेटिंग्स',
+    'nav.profile': 'प्रोफाइल',
+    'nav.logout': 'लॉगआउट',
+    
+    // Dashboard
     'dashboard.title': 'डैशबोर्ड',
+    'dashboard.welcome': 'वापसी पर स्वागत',
+    'dashboard.overview': 'अवलोकन',
+    'dashboard.analytics': 'एनालिटिक्स',
+    'dashboard.recent': 'हाल के वीडियो',
+    'dashboard.quick_actions': 'त्वरित कार्रवाई',
+    'dashboard.analyze_video': 'वीडियो विश्लेषण करें',
+    'dashboard.view_reports': 'रिपोर्ट देखें',
+    'dashboard.manage_comments': 'कमेंट्स प्रबंधित करें',
+    
+    // Video Reports
+    'reports.title': 'वीडियो रिपोर्ट्स',
+    'reports.sentiment': 'सेंटीमेंट स्कोर',
+    'reports.comments': 'टिप्पणियां विश्लेषित',
+    'reports.views': 'व्यूज',
+    'reports.likes': 'लाइक्स',
+    'reports.download': 'रिपोर्ट डाउनलोड करें',
+    'reports.back': 'डैशबोर्ड पर वापस',
+    'reports.summary': 'कार्यकारी सारांश',
+    
+    // Comments
+    'comments.title': 'रिप्लाई स्टूडियो',
+    
+    // Settings
     'settings.title': 'सेटिंग्स',
+    'settings.notifications': 'सूचनाएं',
+    'settings.email_notifications': 'ईमेल सूचनाएं',
+    'settings.email_desc': 'जब रिपोर्ट तैयार हो तो ईमेल प्राप्त करें',
+    'settings.dark_mode': 'डार्क मोड',
+    'settings.dark_mode_desc': 'लाइट और डार्क थीम के बीच टॉगल करें',
+    'settings.language': 'भाषा',
+    'settings.language_desc': 'अपनी पसंदीदा भाषा चुनें',
+    'settings.channels': 'कनेक्टेड चैनल्स',
+    'settings.connect': 'चैनल कनेक्ट करें',
+    'settings.disconnect': 'डिस्कनेक्ट करें',
+    
+    // Profile
     'profile.title': 'प्रोफाइल',
-    'comments.title': 'टिप्पणियां',
-    'reports.title': 'रिपोर्ट्स',
-    'dark_mode': 'डार्क मोड',
-    'email_notifications': 'ईमेल सूचनाएं',
-    'language': 'भाषा',
-    'connect_channel': 'चैनल कनेक्ट करें',
-    'disconnect': 'डिस्कनेक्ट',
-    'add_channel': 'चैनल जोड़ें',
-    'download_report': 'रिपोर्ट डाउनलोड करें',
-    'sentiment_score': 'सेंटीमेंट स्कोर',
-    'comments_analyzed': 'टिप्पणियों का विश्लेषण',
-    'views': 'व्यूज',
-    'likes': 'लाइक्स',
-    'shares': 'शेयर्स',
+    
+    // Common
+    'common.save': 'सेव करें',
+    'common.cancel': 'रद्द करें',
+    'common.loading': 'लोड हो रहा है...',
+    'common.on': 'चालू',
+    'common.off': 'बंद',
   },
   // Add more languages as needed
   sd: { 'app.title': 'Axion AI', 'dashboard.title': 'ڈیشبورڊ', 'settings.title': 'سیٹنگس', 'profile.title': 'پروفائل', 'comments.title': 'تبصرے', 'reports.title': 'رپورٽس', 'dark_mode': 'ارک موڊ', 'email_notifications': 'ایمیل نوٽيفيڪيشنز', 'language': 'زبان', 'connect_channel': 'چينل جوڙيو', 'disconnect': 'ڊسڪنيڪٽ', 'add_channel': 'چينل شامل ڪريو', 'download_report': 'رپورٽ ڈاؤن لوڊ ڪريو', 'sentiment_score': 'سينٽيمنٽ اسڪور', 'comments_analyzed': 'تبصرن جو تجزيو', 'views': 'ويوز', 'likes': 'لائڪس', 'shares': 'شيئرز', },

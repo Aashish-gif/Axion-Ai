@@ -142,7 +142,7 @@ export function TopBar() {
             <div className="flex items-center justify-end w-full md:w-auto gap-4">
                 {/* Add Channel Button */}
                 <button
-                    onClick={() => window.location.href = "/api/auth/youtube"}
+                    onClick={() => router.push("/api/auth/youtube")}
                     className="hidden md:flex items-center gap-2 px-3 py-2 bg-accent-red text-white font-bold text-sm rounded-xl border-2 border-dark-border shadow-[2px_2px_0_#111827] hover:bg-red-700 transition-colors"
                 >
                     <Plus size={16} />
