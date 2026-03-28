@@ -456,7 +456,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             pptx.setFont("helvetica", "normal");
             pptx.text(`• Overall Performance: ${video.sentimentScore >= 70 ? 'Excellent' : video.sentimentScore >= 50 ? 'Good' : 'Needs Improvement'}`, 25, yPosition);
             yPosition += 8;
-            pptx.text(`• Engagement Level: ${parseInt(video.metrics.comments) > 1000 ? 'High' : parseInt(video.metrics.comments) > 500 ? 'Medium' : 'Low'}`, 25, yPosition);
+            pptx.text(`• Engagement Level: ${parseInt(String(video.metrics?.comments || 0)) > 1000 ? 'High' : parseInt(String(video.metrics?.comments || 0)) > 500 ? 'Medium' : 'Low'}`, 25, yPosition);
             yPosition += 8;
             pptx.text(`• Content Quality: ${video.goodPoints.length > video.improvPoints.length ? 'Strong' : 'Developing'}`, 25, yPosition);
             yPosition += 15;

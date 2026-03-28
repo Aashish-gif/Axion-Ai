@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -46,7 +46,7 @@ interface ProfileData {
     };
 }
 
-export default function SettingsPage() {
+function SettingsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { theme, toggleTheme } = useTheme();
@@ -540,3 +540,13 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+function SettingsPageWrapper() {
+    return (
+        <Suspense fallback={<LoadingScreen />}>
+            <SettingsPage />
+        </Suspense>
+    );
+}
+
+export default SettingsPageWrapper;
