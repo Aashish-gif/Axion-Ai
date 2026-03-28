@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { useTheme } from "@/context/ThemeContext";
+import { useLanguage, LANGUAGES } from "@/context/LanguageContext";
 import {
     Loader2, Youtube, Link2, Settings, Plus, X, CheckCircle, XCircle, 
-    AlertCircle, Trash2, Users, Video, ChevronRight
+    AlertCircle, Trash2, Users, Video, ChevronRight, Moon, Sun, Mail, Globe
 } from "lucide-react";
 
 interface ProfileData {
@@ -47,12 +49,12 @@ interface ProfileData {
 export default function SettingsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { theme, toggleTheme } = useTheme();
+    const { language, setLanguage } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [disconnecting, setDisconnecting] = useState(false);
     const [emailNotif, setEmailNotif] = useState(true);
-    const [weeklyReport, setWeeklyReport] = useState(true);
-    const [commentAlerts, setCommentAlerts] = useState(false);
     const [profileData, setProfileData] = useState<ProfileData | null>(null);
     const [userData, setUserData] = useState<any>(null);
     const [usageData, setUsageData] = useState<any>(null);
@@ -80,8 +82,6 @@ export default function SettingsPage() {
                 setUserData(data.user);
                 setUsageData(data.usage);
                 setEmailNotif(data.user.emailNotifications);
-                setWeeklyReport(data.user.weeklyDigest);
-                setCommentAlerts(data.user.negativeSentimentAlerts);
             }
         } catch (error) {
             console.error('Failed to load settings:', error);
@@ -116,8 +116,6 @@ export default function SettingsPage() {
             if (res.ok) {
                 // Update local state
                 if (key === 'emailNotifications') setEmailNotif(value);
-                if (key === 'weeklyDigest') setWeeklyReport(value);
-                if (key === 'negativeSentimentAlerts') setCommentAlerts(value);
             }
         } catch (error) {
             console.error('Failed to update setting:', error);
@@ -383,12 +381,25 @@ export default function SettingsPage() {
                 <section>
                     <h2 className="font-heading font-black text-xl mb-4 text-dark-border">Notifications</h2>
                     <div className="space-y-4">
-                        <Card className="p-5 flex items-center justify-between bg-white">
-                            <div>
-                                <div className="font-bold text-lg mb-1">Email Updates</div>
-                                <div className="text-sm font-medium text-gray-500">Receive an email when a new video report is ready.</div>
+                        <Card className="p-8 flex items-center justify-between bg-white border-4 border-dark-border shadow-solid relative overflow-hidden">
+                            {/* Background gradient effect */}
+                            <div className={`absolute inset-0 opacity-10 transition-all duration-300 ${emailNotif ? 'bg-gradient-to-br from-green-200 to-blue-200' : 'bg-gradient-to-br from-gray-200 to-gray-300'}`}></div>
+                            
+                            <div className="flex items-center gap-6 relative z-10">
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg ${emailNotif ? 'bg-gradient-to-br from-green-400 to-blue-400' : 'bg-gradient-to-br from-gray-300 to-gray-400'}`}>
+                                    <Mail size={32} className={emailNotif ? "text-white animate-bounce" : "text-gray-600"} />
+                                </div>
+                                <div>
+                                    <div className="font-heading font-black text-2xl mb-2 text-dark-border flex items-center gap-2">
+                                        Email Notifications
+                                        <Badge variant={emailNotif ? 'green' : 'dark'} className="text-xs !bg-gray-100 !text-gray-600">
+                                            {emailNotif ? 'ON' : 'OFF'}
+                                        </Badge>
+                                    </div>
+                                    <div className="text-base font-medium text-gray-600">Receive an email when a new video report is ready</div>
+                                </div>
                             </div>
-                            <div className="relative">
+                            <div className="relative z-10">
                                 <input
                                     type="checkbox"
                                     id="email-notifications"
@@ -398,97 +409,105 @@ export default function SettingsPage() {
                                 />
                                 <label 
                                     htmlFor="email-notifications"
-                                    className={`relative w-14 h-8 rounded-full border-[2.5px] border-dark-border transition-colors shadow-[2px_2px_0_#111827] focus:outline-none cursor-pointer ${emailNotif ? "bg-green-400" : "bg-gray-300"
+                                    className={`relative w-24 h-12 rounded-full border-[4px] border-dark-border transition-all duration-500 shadow-[4px_4px_0_#111827] focus:outline-none cursor-pointer hover:scale-105 active:scale-95 ${emailNotif ? "bg-gradient-to-r from-green-400 via-blue-400 to-green-500" : "bg-gradient-to-r from-gray-300 via-gray-400 to-gray-500"
                                         }`}
                                 >
                                     <div
-                                        className={`absolute top-[3px] left-[3px] w-5 h-5 bg-white rounded-full border-2 border-dark-border transition-transform ${emailNotif ? "translate-x-6" : "translate-x-0"
+                                        className={`absolute top-[3px] left-[3px] w-7 h-7 bg-white rounded-full border-[3px] border-dark-border transition-all duration-500 flex items-center justify-center shadow-lg ${emailNotif ? "translate-x-12" : "translate-x-0"
                                             }`}
-                                    />
+                                    >
+                                        <Mail size={16} className={emailNotif ? "text-green-600" : "text-gray-600"} />
+                                    </div>
+                                    {/* Animated dots */}
+                                    <div className={`absolute top-1/2 -translate-y-1/2 transition-all duration-500 ${emailNotif ? 'left-8 opacity-0' : 'left-4 opacity-100'}`}>
+                                        <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                                    </div>
+                                    <div className={`absolute top-1/2 -translate-y-1/2 transition-all duration-500 ${emailNotif ? 'right-4 opacity-100' : 'right-8 opacity-0'}`}>
+                                        <div className="w-1 h-1 bg-green-600 rounded-full"></div>
+                                    </div>
                                 </label>
                             </div>
                         </Card>
-                        <Card className="p-5 flex items-center justify-between bg-white">
-                            <div>
-                                <div className="font-bold text-lg mb-1">Weekly Digest</div>
-                                <div className="text-sm font-medium text-gray-500">Get a summary of your channel's performance every Monday.</div>
+                        <Card className="p-8 flex items-center justify-between bg-white border-4 border-dark-border shadow-solid relative overflow-hidden">
+                            {/* Background gradient effect */}
+                            <div className={`absolute inset-0 opacity-10 transition-all duration-300 ${theme === 'dark' ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-yellow-200 to-orange-200'}`}></div>
+                            
+                            <div className="flex items-center gap-6 relative z-10">
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg ${theme === 'dark' ? 'bg-gradient-to-br from-gray-700 to-gray-900' : 'bg-gradient-to-br from-yellow-300 to-orange-300'}`}>
+                                    {theme === 'dark' ? <Moon size={32} className="text-yellow-400 animate-pulse" /> : <Sun size={32} className="text-yellow-600 animate-spin-slow" />}
+                                </div>
+                                <div>
+                                    <div className="font-heading font-black text-2xl mb-2 text-dark-border flex items-center gap-2">
+                                        Dark Mode
+                                        <Badge variant={theme === 'dark' ? 'green' : 'yellow'} className="text-xs">
+                                            {theme === 'dark' ? 'ON' : 'OFF'}
+                                        </Badge>
+                                    </div>
+                                    <div className="text-base font-medium text-gray-600">Toggle between light and dark theme for better viewing experience</div>
+                                </div>
                             </div>
-                            <div className="relative">
+                            <div className="relative z-10">
                                 <input
                                     type="checkbox"
-                                    id="weekly-digest"
-                                    checked={weeklyReport}
-                                    onChange={(e) => updateSetting('weeklyDigest', e.target.checked)}
+                                    id="dark-mode"
+                                    checked={theme === 'dark'}
+                                    onChange={toggleTheme}
                                     className="sr-only"
                                 />
                                 <label 
-                                    htmlFor="weekly-digest"
-                                    className={`relative w-14 h-8 rounded-full border-[2.5px] border-dark-border transition-colors shadow-[2px_2px_0_#111827] focus:outline-none cursor-pointer ${weeklyReport ? "bg-green-400" : "bg-gray-300"
+                                    htmlFor="dark-mode"
+                                    className={`relative w-24 h-12 rounded-full border-[4px] border-dark-border transition-all duration-500 shadow-[4px_4px_0_#111827] focus:outline-none cursor-pointer hover:scale-105 active:scale-95 ${theme === 'dark' ? "bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900" : "bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-400"
                                         }`}
                                 >
                                     <div
-                                        className={`absolute top-[3px] left-[3px] w-5 h-5 bg-white rounded-full border-2 border-dark-border transition-transform ${weeklyReport ? "translate-x-6" : "translate-x-0"
+                                        className={`absolute top-[3px] left-[3px] w-7 h-7 bg-white rounded-full border-[3px] border-dark-border transition-all duration-500 flex items-center justify-center shadow-lg ${theme === 'dark' ? "translate-x-12" : "translate-x-0"
                                             }`}
-                                    />
+                                    >
+                                        {theme === 'dark' ? <Moon size={16} className="text-gray-700" /> : <Sun size={16} className="text-yellow-600" />}
+                                    </div>
+                                    {/* Animated dots */}
+                                    <div className={`absolute top-1/2 -translate-y-1/2 transition-all duration-500 ${theme === 'dark' ? 'left-8 opacity-0' : 'left-4 opacity-100'}`}>
+                                        <div className="w-1 h-1 bg-yellow-600 rounded-full"></div>
+                                    </div>
+                                    <div className={`absolute top-1/2 -translate-y-1/2 transition-all duration-500 ${theme === 'dark' ? 'right-4 opacity-100' : 'right-8 opacity-0'}`}>
+                                        <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                    </div>
                                 </label>
                             </div>
                         </Card>
-                        <Card className="p-5 flex items-center justify-between bg-white">
-                            <div>
-                                <div className="font-bold text-lg mb-1">Negative Sentiment Alerts</div>
-                                <div className="text-sm font-medium text-gray-500">Alert if a video's sentiment drops below 50%.</div>
+                        <Card className="p-8 flex items-center justify-between bg-white border-4 border-dark-border shadow-solid relative overflow-hidden">
+                            {/* Background gradient effect */}
+                            <div className={`absolute inset-0 opacity-10 transition-all duration-300 bg-gradient-to-br from-blue-200 to-purple-200`}></div>
+                            
+                            <div className="flex items-center gap-6 relative z-10">
+                                <div className="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg bg-gradient-to-br from-blue-400 to-purple-400">
+                                    <Globe size={32} className="text-white animate-spin-slow" />
+                                </div>
+                                <div>
+                                    <div className="font-heading font-black text-2xl mb-2 text-dark-border flex items-center gap-2">
+                                        Language
+                                        <Badge variant="dark" className="text-xs !bg-blue-100 !text-blue-600">
+                                            {LANGUAGES[language].nativeName}
+                                        </Badge>
+                                    </div>
+                                    <div className="text-base font-medium text-gray-600">Choose your preferred language for the entire app</div>
+                                </div>
                             </div>
-                            <div className="relative">
-                                <input
-                                    type="checkbox"
-                                    id="comment-alerts"
-                                    checked={commentAlerts}
-                                    onChange={(e) => updateSetting('negativeSentimentAlerts', e.target.checked)}
-                                    className="sr-only"
-                                />
-                                <label 
-                                    htmlFor="comment-alerts"
-                                    className={`relative w-14 h-8 rounded-full border-[2.5px] border-dark-border transition-colors shadow-[2px_2px_0_#111827] focus:outline-none cursor-pointer ${commentAlerts ? "bg-green-400" : "bg-gray-300"
-                                        }`}
+                            <div className="relative z-10">
+                                <select
+                                    value={language}
+                                    onChange={(e) => setLanguage(e.target.value as keyof typeof LANGUAGES)}
+                                    className="w-48 h-12 px-4 border-[4px] border-dark-border rounded-2xl shadow-[4px_4px_0_#111827] focus:outline-none focus:border-accent-red transition-all duration-300 bg-white font-bold text-dark-border hover:scale-105 active:scale-95"
                                 >
-                                    <div
-                                        className={`absolute top-[3px] left-[3px] w-5 h-5 bg-white rounded-full border-2 border-dark-border transition-transform ${commentAlerts ? "translate-x-6" : "translate-x-0"
-                                            }`}
-                                    />
-                                </label>
+                                    {Object.entries(LANGUAGES).map(([code, lang]) => (
+                                        <option key={code} value={code} className="font-medium">
+                                            {lang.name} ({lang.nativeName})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </Card>
                     </div>
-                </section>
-
-                {/* Plan & Billing */}
-                <section>
-                    <h2 className="font-heading font-black text-xl mb-4 text-dark-border">Billing & Plan</h2>
-                    <Card bg="yellow" className="p-6">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                            <div>
-                                <h3 className="font-heading font-black text-2xl mb-1 flex items-center gap-3">
-                                    {usageData?.plan || 'Pro'} Plan <Badge variant="dark" className="text-xs !py-0.5 align-middle">{usageData?.planStatus || 'Active'}</Badge>
-                                </h3>
-                                <p className="text-gray-700 font-bold">{usageData?.price || '$19/month'}, next billing on {usageData?.nextBilling || 'Oct 12, 2024'}.</p>
-                            </div>
-                            <Button variant="dark" className="w-full sm:w-auto">Manage Billing</Button>
-                        </div>
-
-                        <div className="bg-white/50 rounded-xl p-4 border-2 border-dark-border border-dashed">
-                            <div className="font-bold mb-3 leading-none">Usage this month</div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="flex-1 h-3 bg-white border-2 border-dark-border rounded-full overflow-hidden">
-                                    <div 
-                                        className="h-full bg-accent-red transition-all duration-500" 
-                                        style={{ width: `${((usageData?.reportsGenerated || 0) / (usageData?.reportsLimit || 20)) * 100}%` }}
-                                    ></div>
-                                </div>
-                                <span className="font-black text-sm w-12 text-right">{usageData?.reportsGenerated || 0} / {usageData?.reportsLimit || 20}</span>
-                            </div>
-                            <p className="text-xs font-bold text-gray-500">You've generated {usageData?.reportsGenerated || 0} PDF reports out of your {usageData?.reportsLimit || 20} allowance.</p>
-                        </div>
-                    </Card>
                 </section>
             </div>
         </div>
