@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ArrowLeft, Download, Loader2, AlertCircle, FileText } from "lucide-react";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface VideoReport {
     id: string;
@@ -55,6 +56,7 @@ interface VideoReport {
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
+    const { t } = useLanguage();
     const [video, setVideo] = useState<VideoReport | null>(null);
     const [loading, setLoading] = useState(true);
     const [downloadingPPT, setDownloadingPPT] = useState(false);
@@ -551,7 +553,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                                     data-pdf-ignore
                                 >
                                     {downloadingPPT ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
-                                    {downloadingPPT ? "Generating PPT..." : "Download PPT Report"}
+                                    {downloadingPPT ? t('common.loading') : t('reports.download')}
                                 </Button>
                             </div>
                         </div>
@@ -562,7 +564,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 <div className="grid md:grid-cols-3 gap-6 mb-10">
                     <Card bg="white" className="p-6 border-4 border-dark-border shadow-solid md:col-span-2">
                         <h2 className="font-heading font-black text-xl mb-3 flex items-center gap-2">
-                            📋 Executive Summary
+                            📋 {t('reports.summary')}
                         </h2>
                         <p className="text-base font-medium leading-relaxed text-dark-border/80">
                             {video.overallSummary}
