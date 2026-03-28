@@ -50,7 +50,7 @@ export default function SettingsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { theme, toggleTheme } = useTheme();
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage, t } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [disconnecting, setDisconnecting] = useState(false);
@@ -59,6 +59,28 @@ export default function SettingsPage() {
     const [userData, setUserData] = useState<any>(null);
     const [usageData, setUsageData] = useState<any>(null);
     const [showAddChannelModal, setShowAddChannelModal] = useState(false);
+
+    const handleLanguageChange = async (newLanguage: string) => {
+        setLanguage(newLanguage as keyof typeof LANGUAGES);
+        
+        // Also save to database
+        try {
+            setSaving(true);
+            const res = await fetch('/api/dashboard/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: newLanguage }),
+            });
+            
+            if (!res.ok) {
+                console.error('Failed to save language preference');
+            }
+        } catch (error) {
+            console.error('Failed to update language:', error);
+        } finally {
+            setSaving(false);
+        }
+    };
 
     useEffect(() => {
         // Check if we need to show add channel modal
@@ -82,6 +104,11 @@ export default function SettingsPage() {
                 setUserData(data.user);
                 setUsageData(data.usage);
                 setEmailNotif(data.user.emailNotifications);
+                
+                // Load language from database if available
+                if (data.settings?.language) {
+                    setLanguage(data.settings.language as keyof typeof LANGUAGES);
+                }
             }
         } catch (error) {
             console.error('Failed to load settings:', error);
@@ -379,7 +406,7 @@ export default function SettingsPage() {
 
                 {/* Notifications */}
                 <section>
-                    <h2 className="font-heading font-black text-xl mb-4 text-dark-border">Notifications</h2>
+                    <h2 className="font-heading font-black text-xl mb-4 text-dark-border">{t('settings.notifications')}</h2>
                     <div className="space-y-4">
                         <Card className="p-8 flex items-center justify-between bg-white border-4 border-dark-border shadow-solid relative overflow-hidden">
                             {/* Background gradient effect */}
@@ -391,12 +418,12 @@ export default function SettingsPage() {
                                 </div>
                                 <div>
                                     <div className="font-heading font-black text-2xl mb-2 text-dark-border flex items-center gap-2">
-                                        Email Notifications
+                                        {t('settings.email_notifications')}
                                         <Badge variant={emailNotif ? 'green' : 'dark'} className="text-xs !bg-gray-100 !text-gray-600">
-                                            {emailNotif ? 'ON' : 'OFF'}
+                                            {emailNotif ? t('common.on') : t('common.off')}
                                         </Badge>
                                     </div>
-                                    <div className="text-base font-medium text-gray-600">Receive an email when a new video report is ready</div>
+                                    <div className="text-base font-medium text-gray-600">{t('settings.email_desc')}</div>
                                 </div>
                             </div>
                             <div className="relative z-10">
@@ -438,12 +465,12 @@ export default function SettingsPage() {
                                 </div>
                                 <div>
                                     <div className="font-heading font-black text-2xl mb-2 text-dark-border flex items-center gap-2">
-                                        Dark Mode
+                                        {t('settings.dark_mode')}
                                         <Badge variant={theme === 'dark' ? 'green' : 'yellow'} className="text-xs">
-                                            {theme === 'dark' ? 'ON' : 'OFF'}
+                                            {theme === 'dark' ? t('common.on') : t('common.off')}
                                         </Badge>
                                     </div>
-                                    <div className="text-base font-medium text-gray-600">Toggle between light and dark theme for better viewing experience</div>
+                                    <div className="text-base font-medium text-gray-600">{t('settings.dark_mode_desc')}</div>
                                 </div>
                             </div>
                             <div className="relative z-10">
@@ -485,18 +512,18 @@ export default function SettingsPage() {
                                 </div>
                                 <div>
                                     <div className="font-heading font-black text-2xl mb-2 text-dark-border flex items-center gap-2">
-                                        Language
+                                        {t('settings.language')}
                                         <Badge variant="dark" className="text-xs !bg-blue-100 !text-blue-600">
                                             {LANGUAGES[language].nativeName}
                                         </Badge>
                                     </div>
-                                    <div className="text-base font-medium text-gray-600">Choose your preferred language for the entire app</div>
+                                    <div className="text-base font-medium text-gray-600">{t('settings.language_desc')}</div>
                                 </div>
                             </div>
                             <div className="relative z-10">
                                 <select
                                     value={language}
-                                    onChange={(e) => setLanguage(e.target.value as keyof typeof LANGUAGES)}
+                                    onChange={(e) => handleLanguageChange(e.target.value)}
                                     className="w-48 h-12 px-4 border-[4px] border-dark-border rounded-2xl shadow-[4px_4px_0_#111827] focus:outline-none focus:border-accent-red transition-all duration-300 bg-white font-bold text-dark-border hover:scale-105 active:scale-95"
                                 >
                                     {Object.entries(LANGUAGES).map(([code, lang]) => (
