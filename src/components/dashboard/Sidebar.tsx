@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Play, LogOut, User } from "lucide-react";
+import { Play, LogOut, User, Plus, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export function Sidebar() {
@@ -18,7 +18,6 @@ export function Sidebar() {
         { label: "Reply Studio", emoji: "🤖", href: "/dashboard/comments" },
         { label: "Video Reports", emoji: "🎬", href: `/dashboard/report/${firstVideoId}`, notification: true },
         { label: "Idea Factory", emoji: "💡", href: "/dashboard/ideas" },
-        { label: "Profile", emoji: "👤", href: "/dashboard/profile" },
         { label: "Settings", emoji: "⚙️", href: "/dashboard/settings" },
     ];
 
@@ -104,15 +103,25 @@ export function Sidebar() {
 
                 <div className="mt-auto p-6">
                     <div className="text-xs font-bold text-gray-400 mb-4 px-2 uppercase tracking-wider">ACCOUNT</div>
-                    <div className="flex items-center gap-3 px-2 mb-4">
+                    
+                    {/* User Account - Clickable to Profile */}
+                    <Link
+                        href="/dashboard/profile"
+                        className={`flex items-center gap-3 px-2 mb-3 p-2 rounded-xl transition-all ${pathname === "/dashboard/profile"
+                            ? "bg-accent-red text-white font-heading font-extrabold border-[2.5px] border-dark-border shadow-[3px_4px_0_#111827]"
+                            : "text-gray-600 font-bold border-[2.5px] border-transparent hover:border-dark-border hover:shadow-[3px_4px_0_#111827] hover:translate-x-[3px] hover:text-dark-border"
+                        }`}
+                    >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-red to-orange-400 border-2 border-dark-border flex items-center justify-center text-white font-bold text-sm shadow-[2px_2px_0_#111827]">
                             {userInitials || "..."}
                         </div>
-                        <div className="overflow-hidden">
-                            <div className="font-bold text-sm truncate text-dark-border">{userName || "Loading..."}</div>
-                            <div className="text-xs font-bold text-gray-500">Pro Plan</div>
+                        <div className="overflow-hidden flex-1">
+                            <div className="font-bold text-sm truncate text-inherit">{userName || "Loading..."}</div>
+                            <div className="text-xs font-bold text-inherit opacity-70">View Profile</div>
                         </div>
-                    </div>
+                        <ChevronRight size={16} className="text-inherit" />
+                    </Link>
+                    
                     <button
                         onClick={handleLogout}
                         disabled={loggingOut}
