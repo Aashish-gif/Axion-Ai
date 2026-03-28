@@ -358,7 +358,7 @@ export default function SettingsPage() {
                                     <button
                                         onClick={() => {
                                             setShowAddChannelModal(false);
-                                            window.location.href = "/api/youtube/auth";
+                                            window.location.href = "/api/auth/youtube";
                                         }}
                                         className="w-full border-2 border-gray-200 bg-white rounded-xl p-4 hover:border-accent-red hover:bg-red-50 transition-all group"
                                     >
