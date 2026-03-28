@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ArrowLeft, Download, Loader2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Download, Loader2, AlertCircle, FileText } from "lucide-react";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 interface VideoReport {
@@ -57,7 +57,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     const resolvedParams = use(params);
     const [video, setVideo] = useState<VideoReport | null>(null);
     const [loading, setLoading] = useState(true);
-    const [downloading, setDownloading] = useState(false);
+    const [downloadingPPT, setDownloadingPPT] = useState(false);
     const [error, setError] = useState("");
     const [pageTransition, setPageTransition] = useState(true);
 
@@ -87,47 +87,402 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
     // Removed chat functionality
 
-    const handleDownloadPDF = async () => {
-        if (downloading) return;
-        setDownloading(true);
+    const handleDownloadPPT = async () => {
+        if (downloadingPPT || !video) return;
+        setDownloadingPPT(true);
 
         try {
-            const html2canvas = (await import("html2canvas")).default;
+            // Enhanced PPT generation with full report content
             const jsPDF = (await import("jspdf")).default;
-
-            const element = document.getElementById("report-content");
-            if (!element || !video) return;
-
-            const downloadBtn = element.querySelector('[data-pdf-ignore]');
-            if (downloadBtn) (downloadBtn as HTMLElement).style.display = 'none';
-
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-                backgroundColor: "#FFF9F0",
-            });
-
-            if (downloadBtn) (downloadBtn as HTMLElement).style.display = 'flex';
-
-            const imgData = canvas.toDataURL("image/png", 1.0);
-            const pdf = new jsPDF("p", "mm", "a4", true);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = pdfWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const pptx = new jsPDF("p", "mm", "a4", true);
             
-            pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight, undefined, "FAST");
+            let slideNumber = 1;
+            const addNewSlide = () => {
+                if (slideNumber > 1) {
+                    pptx.addPage();
+                }
+                slideNumber++;
+                return 20; // Reset y position for new slide
+            };
+            
+            // SLIDE 1: Title Slide
+            let yPosition = 30;
+            pptx.setFontSize(28);
+            pptx.setFont("helvetica", "bold");
+            pptx.text(video.title, 20, yPosition);
+            yPosition += 20;
+            
+            pptx.setFontSize(16);
+            pptx.setFont("helvetica", "normal");
+            pptx.text(`Sentiment Score: ${video.sentimentScore}/100`, 20, yPosition);
+            yPosition += 10;
+            pptx.text(`${video.commentCount.toLocaleString()} Comments Analyzed`, 20, yPosition);
+            yPosition += 15;
+            
+            if (video.thumbnailUrl) {
+                // Add thumbnail placeholder info
+                pptx.setFontSize(12);
+                pptx.text("Video thumbnail available in full report", 20, yPosition);
+            }
+            
+            // SLIDE 2: Executive Summary
+            yPosition = addNewSlide();
+            pptx.setFontSize(20);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Executive Summary", 20, yPosition);
+            yPosition += 15;
+            
+            pptx.setFontSize(12);
+            pptx.setFont("helvetica", "normal");
+            const summaryLines = pptx.splitTextToSize(video.overallSummary, 170);
+            pptx.text(summaryLines, 20, yPosition);
+            
+            // SLIDE 3: Key Metrics
+            yPosition = addNewSlide();
+            pptx.setFontSize(20);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Key Performance Metrics", 20, yPosition);
+            yPosition += 15;
+            
+            pptx.setFontSize(14);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Engagement Metrics:", 20, yPosition);
+            yPosition += 10;
+            
+            pptx.setFontSize(12);
+            pptx.setFont("helvetica", "normal");
+            pptx.text(`• Views: ${video.metrics.views}`, 25, yPosition);
+            yPosition += 8;
+            pptx.text(`• Likes: ${video.metrics.likes}`, 25, yPosition);
+            yPosition += 8;
+            pptx.text(`• Comments: ${video.metrics.comments}`, 25, yPosition);
+            yPosition += 8;
+            pptx.text(`• Shares: ${video.metrics.shares}`, 25, yPosition);
+            yPosition += 8;
+            pptx.text(`• Watch Time: ${video.metrics.watchTime}`, 25, yPosition);
+            yPosition += 15;
+            
+            if (video.metrics.impressions) {
+                pptx.setFontSize(14);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Reach Metrics:", 20, yPosition);
+                yPosition += 10;
+                
+                pptx.setFontSize(12);
+                pptx.setFont("helvetica", "normal");
+                pptx.text(`• Impressions: ${video.metrics.impressions.toLocaleString()}`, 25, yPosition);
+                yPosition += 8;
+                if (video.metrics.ctr) {
+                    pptx.text(`• CTR: ${video.metrics.ctr}`, 25, yPosition);
+                    yPosition += 8;
+                }
+                if (video.metrics.subscribersGained) {
+                    pptx.text(`• Subscribers Gained: ${video.metrics.subscribersGained}`, 25, yPosition);
+                    yPosition += 8;
+                }
+            }
+            
+            // SLIDE 4: What's Great
+            yPosition = addNewSlide();
+            pptx.setFontSize(20);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("What's Working Well", 20, yPosition);
+            yPosition += 15;
+            
+            pptx.setFontSize(12);
+            pptx.setFont("helvetica", "normal");
+            const greatLines = pptx.splitTextToSize(video.whatIsGreat, 170);
+            pptx.text(greatLines, 20, yPosition);
+            yPosition += 25;
+            
+            if (video.goodPoints && video.goodPoints.length > 0) {
+                pptx.setFontSize(14);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Key Strengths:", 20, yPosition);
+                yPosition += 10;
+                
+                pptx.setFontSize(12);
+                pptx.setFont("helvetica", "normal");
+                video.goodPoints.forEach((point, index) => {
+                    if (yPosition > 250) {
+                        yPosition = addNewSlide();
+                    }
+                    const pointLines = pptx.splitTextToSize(`• ${point}`, 165);
+                    pptx.text(pointLines, 25, yPosition);
+                    yPosition += pointLines.length * 6 + 5;
+                });
+            }
+            
+            // SLIDE 5: Areas for Improvement
+            yPosition = addNewSlide();
+            pptx.setFontSize(20);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Areas for Improvement", 20, yPosition);
+            yPosition += 15;
+            
+            pptx.setFontSize(12);
+            pptx.setFont("helvetica", "normal");
+            const badLines = pptx.splitTextToSize(video.whatIsBad, 170);
+            pptx.text(badLines, 20, yPosition);
+            yPosition += 25;
+            
+            if (video.improvPoints && video.improvPoints.length > 0) {
+                pptx.setFontSize(14);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Improvement Opportunities:", 20, yPosition);
+                yPosition += 10;
+                
+                pptx.setFontSize(12);
+                pptx.setFont("helvetica", "normal");
+                video.improvPoints.forEach((point, index) => {
+                    if (yPosition > 250) {
+                        yPosition = addNewSlide();
+                    }
+                    const pointLines = pptx.splitTextToSize(`• ${point}`, 165);
+                    pptx.text(pointLines, 25, yPosition);
+                    yPosition += pointLines.length * 6 + 5;
+                });
+            }
+            
+            // SLIDE 6: Critical Issues (if any)
+            if (video.flagPoints && video.flagPoints.length > 0) {
+                yPosition = addNewSlide();
+                pptx.setFontSize(20);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Critical Issues to Address", 20, yPosition);
+                yPosition += 15;
+                
+                pptx.setFontSize(12);
+                pptx.setFont("helvetica", "normal");
+                video.flagPoints.forEach((point, index) => {
+                    if (yPosition > 250) {
+                        yPosition = addNewSlide();
+                    }
+                    const pointLines = pptx.splitTextToSize(`⚠️ ${point}`, 165);
+                    pptx.text(pointLines, 25, yPosition);
+                    yPosition += pointLines.length * 6 + 5;
+                });
+            }
+            
+            // SLIDE 7: Content Strategy
+            yPosition = addNewSlide();
+            pptx.setFontSize(20);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Content Strategy Recommendations", 20, yPosition);
+            yPosition += 15;
+            
+            if (video.thumbnailStrategy && video.thumbnailStrategy.length > 0) {
+                pptx.setFontSize(14);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Thumbnail Strategy:", 20, yPosition);
+                yPosition += 10;
+                
+                pptx.setFontSize(12);
+                pptx.setFont("helvetica", "normal");
+                video.thumbnailStrategy.forEach((strategy) => {
+                    if (yPosition > 250) {
+                        yPosition = addNewSlide();
+                    }
+                    const strategyLines = pptx.splitTextToSize(`• ${strategy}`, 165);
+                    pptx.text(strategyLines, 25, yPosition);
+                    yPosition += strategyLines.length * 6 + 5;
+                });
+            }
+            
+            if (video.viralStrategy) {
+                yPosition += 10;
+                pptx.setFontSize(14);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Viral Potential:", 20, yPosition);
+                yPosition += 10;
+                
+                pptx.setFontSize(12);
+                pptx.setFont("helvetica", "normal");
+                const viralLines = pptx.splitTextToSize(video.viralStrategy, 165);
+                pptx.text(viralLines, 25, yPosition);
+            }
+            
+            // SLIDE 8: Audience Insights
+            if (video.audienceInsights || video.retentionInsights) {
+                yPosition = addNewSlide();
+                pptx.setFontSize(20);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Audience & Performance Insights", 20, yPosition);
+                yPosition += 15;
+                
+                if (video.audienceInsights) {
+                    pptx.setFontSize(14);
+                    pptx.setFont("helvetica", "bold");
+                    pptx.text("Audience Insights:", 20, yPosition);
+                    yPosition += 10;
+                    
+                    pptx.setFontSize(12);
+                    pptx.setFont("helvetica", "normal");
+                    const audienceLines = pptx.splitTextToSize(video.audienceInsights, 165);
+                    pptx.text(audienceLines, 25, yPosition);
+                    yPosition += audienceLines.length * 6 + 10;
+                }
+                
+                if (video.retentionInsights && video.retentionInsights.length > 0) {
+                    pptx.setFontSize(14);
+                    pptx.setFont("helvetica", "bold");
+                    pptx.text("Retention Insights:", 20, yPosition);
+                    yPosition += 10;
+                    
+                    pptx.setFontSize(12);
+                    pptx.setFont("helvetica", "normal");
+                    video.retentionInsights.forEach((insight) => {
+                        if (yPosition > 250) {
+                            yPosition = addNewSlide();
+                        }
+                        const insightLines = pptx.splitTextToSize(`• ${insight}`, 165);
+                        pptx.text(insightLines, 25, yPosition);
+                        yPosition += insightLines.length * 6 + 5;
+                    });
+                }
+            }
+            
+            // SLIDE 9: Next Video Idea
+            yPosition = addNewSlide();
+            pptx.setFontSize(20);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Next Video Idea", 20, yPosition);
+            yPosition += 15;
+            
+            pptx.setFontSize(12);
+            pptx.setFont("helvetica", "normal");
+            const nextVideoLines = pptx.splitTextToSize(video.nextVideoIdea, 170);
+            pptx.text(nextVideoLines, 20, yPosition);
+            yPosition += 25;
+            
+            if (video.questions && video.questions.length > 0) {
+                pptx.setFontSize(14);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Content Questions to Explore:", 20, yPosition);
+                yPosition += 10;
+                
+                pptx.setFontSize(12);
+                pptx.setFont("helvetica", "normal");
+                video.questions.forEach((question) => {
+                    if (yPosition > 250) {
+                        yPosition = addNewSlide();
+                    }
+                    const questionLines = pptx.splitTextToSize(`❓ ${question}`, 165);
+                    pptx.text(questionLines, 25, yPosition);
+                    yPosition += questionLines.length * 6 + 5;
+                });
+            }
+            
+            // SLIDE 10: Additional Insights
+            if (video.contentGaps || video.trendingTopics || video.technicalIssues) {
+                yPosition = addNewSlide();
+                pptx.setFontSize(20);
+                pptx.setFont("helvetica", "bold");
+                pptx.text("Additional Insights", 20, yPosition);
+                yPosition += 15;
+                
+                if (video.contentGaps && video.contentGaps.length > 0) {
+                    pptx.setFontSize(14);
+                    pptx.setFont("helvetica", "bold");
+                    pptx.text("Content Gaps:", 20, yPosition);
+                    yPosition += 10;
+                    
+                    pptx.setFontSize(12);
+                    pptx.setFont("helvetica", "normal");
+                    video.contentGaps.forEach((gap) => {
+                        if (yPosition > 250) {
+                            yPosition = addNewSlide();
+                        }
+                        const gapLines = pptx.splitTextToSize(`• ${gap}`, 165);
+                        pptx.text(gapLines, 25, yPosition);
+                        yPosition += gapLines.length * 6 + 5;
+                    });
+                }
+                
+                if (video.trendingTopics && video.trendingTopics.length > 0) {
+                    yPosition += 10;
+                    pptx.setFontSize(14);
+                    pptx.setFont("helvetica", "bold");
+                    pptx.text("Trending Topics:", 20, yPosition);
+                    yPosition += 10;
+                    
+                    pptx.setFontSize(12);
+                    pptx.setFont("helvetica", "normal");
+                    video.trendingTopics.forEach((topic) => {
+                        if (yPosition > 250) {
+                            yPosition = addNewSlide();
+                        }
+                        const topicLines = pptx.splitTextToSize(`🔥 ${topic}`, 165);
+                        pptx.text(topicLines, 25, yPosition);
+                        yPosition += topicLines.length * 6 + 5;
+                    });
+                }
+                
+                if (video.technicalIssues && video.technicalIssues.length > 0) {
+                    yPosition += 10;
+                    pptx.setFontSize(14);
+                    pptx.setFont("helvetica", "bold");
+                    pptx.text("Technical Issues:", 20, yPosition);
+                    yPosition += 10;
+                    
+                    pptx.setFontSize(12);
+                    pptx.setFont("helvetica", "normal");
+                    video.technicalIssues.forEach((issue) => {
+                        if (yPosition > 250) {
+                            yPosition = addNewSlide();
+                        }
+                        const issueLines = pptx.splitTextToSize(`⚙️ ${issue}`, 165);
+                        pptx.text(issueLines, 25, yPosition);
+                        yPosition += issueLines.length * 6 + 5;
+                    });
+                }
+            }
+            
+            // FINAL SLIDE: Summary & Action Items
+            yPosition = addNewSlide();
+            pptx.setFontSize(20);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Summary & Action Items", 20, yPosition);
+            yPosition += 15;
+            
+            pptx.setFontSize(14);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Key Takeaways:", 20, yPosition);
+            yPosition += 10;
+            
+            pptx.setFontSize(12);
+            pptx.setFont("helvetica", "normal");
+            pptx.text(`• Overall Performance: ${video.sentimentScore >= 70 ? 'Excellent' : video.sentimentScore >= 50 ? 'Good' : 'Needs Improvement'}`, 25, yPosition);
+            yPosition += 8;
+            pptx.text(`• Engagement Level: ${parseInt(video.metrics.comments) > 1000 ? 'High' : parseInt(video.metrics.comments) > 500 ? 'Medium' : 'Low'}`, 25, yPosition);
+            yPosition += 8;
+            pptx.text(`• Content Quality: ${video.goodPoints.length > video.improvPoints.length ? 'Strong' : 'Developing'}`, 25, yPosition);
+            yPosition += 15;
+            
+            pptx.setFontSize(14);
+            pptx.setFont("helvetica", "bold");
+            pptx.text("Recommended Actions:", 20, yPosition);
+            yPosition += 10;
+            
+            pptx.setFontSize(12);
+            pptx.setFont("helvetica", "normal");
+            pptx.text("1. Focus on content that resonates with your audience", 25, yPosition);
+            yPosition += 8;
+            pptx.text("2. Address the improvement areas identified", 25, yPosition);
+            yPosition += 8;
+            pptx.text("3. Leverage your strengths in future content", 25, yPosition);
+            yPosition += 8;
+            pptx.text("4. Consider the next video idea for your next upload", 25, yPosition);
             
             const safeTitle = video.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().substring(0, 50);
-            const fileName = `${safeTitle}-analytics-report.pdf`;
-            pdf.save(fileName);
+            const fileName = `${safeTitle}-complete-report.pdf`;
+            
+            pptx.save(fileName);
         } catch (err: any) {
-            console.error("PDF Generation failed:", err);
-            alert(`Failed to generate PDF: ${err.message || 'Unknown error'}. Please check console for details.`);
+            console.error("PPT Generation failed:", err);
+            alert(`Failed to generate PPT: ${err.message || 'Unknown error'}. Please check console for details.`);
         } finally {
-            setDownloading(false);
+            setDownloadingPPT(false);
         }
     };
 
@@ -189,14 +544,14 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                                     {video.commentCount.toLocaleString()} Comments Analyzed
                                 </Badge>
                                 <Button 
-                                    variant="dark" 
-                                    className="ml-auto !py-1.5 !px-4 text-sm flex items-center gap-2 disabled:opacity-50" 
-                                    onClick={handleDownloadPDF}
-                                    disabled={downloading}
+                                    variant="primary" 
+                                    className="!py-1.5 !px-4 text-sm flex items-center gap-2 disabled:opacity-50" 
+                                    onClick={handleDownloadPPT}
+                                    disabled={downloadingPPT}
                                     data-pdf-ignore
                                 >
-                                    {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                                    {downloading ? "Generating PDF..." : "Download PDF Report"}
+                                    {downloadingPPT ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                                    {downloadingPPT ? "Generating PPT..." : "Download PPT Report"}
                                 </Button>
                             </div>
                         </div>
