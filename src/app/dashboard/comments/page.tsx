@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { useLanguage } from "@/context/LanguageContext";
 import {
     Loader2, MessageSquare, ExternalLink, Youtube,
     Sparkles, Copy, CheckCheck, ThumbsUp, MessageCircle,
@@ -80,6 +81,7 @@ const DEMO_VIDEOS: Video[] = [
 ];
 
 export default function CommentsPage() {
+    const { t } = useLanguage();
     const [comments, setComments] = useState<Comment[]>([]);
     const [allComments, setAllComments] = useState<Comment[]>([]); // Store all comments for counting
     const [videos, setVideos] = useState<Video[]>([]);

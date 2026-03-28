@@ -8,6 +8,7 @@ import { mockVideos } from "@/lib/mockData";
 import { Play, Youtube, AlertCircle, Loader2, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearch } from "@/context/SearchContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 interface YouTubeVideo {
@@ -71,6 +72,7 @@ export default function DashboardHome() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [pageTransition, setPageTransition] = useState(true);
     const { searchQuery } = useSearch();
+    const { t } = useLanguage();
 
     // Page load animation
     useEffect(() => {
@@ -337,7 +339,7 @@ export default function DashboardHome() {
         { 
             bg: "mint" as const, 
             emoji: "💬", 
-            label: "TOTAL COMMENTS", 
+            label: t('reports.comments').toUpperCase(), 
             value: stats?.totalComments?.toLocaleString() || "0", 
             trend: stats?.trends?.comments || "+12% this week", 
             badge: null 
@@ -345,7 +347,7 @@ export default function DashboardHome() {
         { 
             bg: "yellow" as const, 
             emoji: "😊", 
-            label: "AVG SENTIMENT", 
+            label: t('reports.sentiment').toUpperCase(), 
             value: stats?.avgSentiment || "84%", 
             trend: stats?.trends?.sentiment || "Mostly Positive", 
             badge: null 
@@ -477,7 +479,7 @@ export default function DashboardHome() {
             </div>
 
             <div className="flex items-center justify-between mb-6">
-                <h2 className="font-heading font-black text-2xl text-dark-border">Recent Videos</h2>
+                <h2 className="font-heading font-black text-2xl text-dark-border">{t('dashboard.recent')}</h2>
             </div>
 
             {/* Recent Videos Grid */}
