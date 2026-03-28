@@ -4,21 +4,23 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Play, LogOut, User, Plus, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
+    const { t } = useLanguage();
     const [userName, setUserName] = useState("");
     const [userInitials, setUserInitials] = useState("");
     const [loggingOut, setLoggingOut] = useState(false);
     const [firstVideoId, setFirstVideoId] = useState<string>("1");
 
     const navItems = [
-        { label: "Dashboard", emoji: "📊", href: "/dashboard" },
-        { label: "Reply Studio", emoji: "🤖", href: "/dashboard/comments" },
-        { label: "Video Reports", emoji: "🎬", href: `/dashboard/report/${firstVideoId}`, notification: true },
-        { label: "Idea Factory", emoji: "💡", href: "/dashboard/ideas" },
-        { label: "Settings", emoji: "⚙️", href: "/dashboard/settings" },
+        { label: t('nav.dashboard'), emoji: "📊", href: "/dashboard" },
+        { label: t('nav.comments'), emoji: "🤖", href: "/dashboard/comments" },
+        { label: t('nav.reports'), emoji: "🎬", href: `/dashboard/report/${firstVideoId}`, notification: true },
+        { label: t('nav.ideas'), emoji: "💡", href: "/dashboard/ideas" },
+        { label: t('nav.settings'), emoji: "⚙️", href: "/dashboard/settings" },
     ];
 
     // Fetch user info on mount
@@ -117,7 +119,7 @@ export function Sidebar() {
                         </div>
                         <div className="overflow-hidden flex-1">
                             <div className="font-bold text-sm truncate text-inherit">{userName || "Loading..."}</div>
-                            <div className="text-xs font-bold text-inherit opacity-70">View Profile</div>
+                            <div className="text-xs font-bold text-inherit opacity-70">{t('nav.profile')}</div>
                         </div>
                         <ChevronRight size={16} className="text-inherit" />
                     </Link>
@@ -129,7 +131,7 @@ export function Sidebar() {
                         className="w-full flex items-center justify-center gap-2 py-2.5 px-4 font-heading font-bold rounded-xl border-[2.5px] border-dark-border shadow-[3px_4px_0_#111827] bg-white text-dark-border transition-all hover:-translate-x-[1px] hover:-translate-y-[1px] hover:text-accent-red active:translate-x-0 active:translate-y-0 active:shadow-none disabled:opacity-50"
                     >
                         <LogOut size={16} />
-                        {loggingOut ? "Logging out..." : "Logout"}
+                        {loggingOut ? t('common.loading') : t('nav.logout')}
                     </button>
                 </div>
             </aside>
