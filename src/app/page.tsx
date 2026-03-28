@@ -121,75 +121,56 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="py-24 px-6 max-w-7xl mx-auto">
-          <h2 className="font-heading font-black text-4xl md:text-5xl text-center mb-16">
-            Creators Love Axionix 🎉
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { name: "Sarah Tech", handle: "@sarahtech", quote: "This tool literally found my next 3 video ideas. My latest video hit 1M views thanks to Axionix!", color: "from-pink-500 to-rose-500", initials: "ST" },
-              { name: "Code with Alex", handle: "@alexcodes", quote: "I used to spend hours reading comments. Now I get a full report in 30 seconds. Absolute game changer.", color: "from-blue-500 to-cyan-500", initials: "CA" },
-              { name: "Finance Bro", handle: "@financebro", quote: "The PDF reports are perfect for pitching to sponsors. It looks so professional and data-driven.", color: "from-emerald-500 to-teal-500", initials: "FB" },
-            ].map((t, i) => (
-              <Card key={i} className="p-8 flex flex-col justify-between">
-                <p className="text-lg font-medium italic mb-6">"{t.quote}"</p>
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${t.color} border-[2.5px] border-dark-border flex items-center justify-center text-white font-bold shadow-[2px_2px_0_#111827]`}>
-                    {t.initials}
-                  </div>
-                  <div>
-                    <div className="font-bold text-dark-border">{t.name}</div>
-                    <div className="text-sm font-bold text-gray-500">{t.handle}</div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Pricing */}
-        <section id="pricing" className="py-24 px-6 bg-[#1a1a2e] border-y-[3px] border-dark-border">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="font-heading font-black text-4xl md:text-5xl text-center text-white mb-16">
-              Simple Pricing 💳
+        {/* FAQ Section */}
+        <section className="py-24 px-6 bg-white border-y-[3px] border-dark-border">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="font-heading font-black text-4xl md:text-5xl text-center mb-16">
+              Frequently Asked Questions 🤔
             </h2>
-            <div className="grid md:grid-cols-3 gap-8 items-center max-w-5xl mx-auto">
-              <Card bg="white" className="p-8">
-                <h3 className="font-heading font-black text-2xl mb-2">Free</h3>
-                <div className="text-4xl font-black mb-6">$0<span className="text-base text-gray-500 font-medium">/mo</span></div>
-                <ul className="mb-8 space-y-3 font-medium">
-                  <li className="flex items-center gap-2"><span>✓</span> 5 Videos/Month</li>
-                  <li className="flex items-center gap-2"><span>✓</span> Basic Sentiment</li>
-                  <li className="flex items-center gap-2 text-gray-400"><span>✗</span> PDF Exports</li>
-                </ul>
-                <Button variant="secondary" className="w-full">Get Started</Button>
-              </Card>
-
-              <Card bg="red" className="p-8 md:scale-105 relative z-10 border-white shadow-[8px_10px_0px_#FFFFFF]">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <Badge variant="yellow" className="!shadow-[2px_2px_0px_#FFFFFF] !border-4 !border-white">Most Popular</Badge>
+            <div className="space-y-6">
+              {[
+                {
+                  q: "How does Axion AI analyze my YouTube comments?",
+                  a: "Our AI uses advanced natural language processing to analyze thousands of comments, identifying sentiment patterns, common questions, and content requests that can inform your next video."
+                },
+                {
+                  q: "Is my YouTube data secure?",
+                  a: "Absolutely! We use YouTube's official OAuth 2.0 API with read-only permissions. Your data is encrypted and we never share it with third parties."
+                },
+                {
+                  q: "How accurate is the sentiment analysis?",
+                  a: "Our AI achieves 87% accuracy in sentiment analysis, trained on millions of YouTube comments across various niches and languages."
+                },
+                {
+                  q: "Can I use Axion AI for multiple channels?",
+                  a: "Yes! Our Agency plan supports up to 10 channels, while the Pro plan supports 5 channels. Free plan is limited to 1 channel."
+                },
+                {
+                  q: "What languages does Axion AI support?",
+                  a: "We support 23+ Indian languages including Hindi, Gujarati, Marathi, Tamil, Telugu, Bengali, and more, plus English."
+                },
+                {
+                  q: "How quickly do I get results?",
+                  a: "Most reports are generated within 30 seconds. For channels with extensive comment history, it may take up to 2 minutes."
+                },
+                {
+                  q: "Can I export my analytics reports?",
+                  a: "Yes! Pro and Agency plans allow you to download comprehensive PDF reports perfect for sharing with sponsors or your team."
+                },
+                {
+                  q: "What if I need help getting started?",
+                  a: "We offer 24/7 email support, video tutorials, and a Discord community where you can connect with other creators."
+                }
+              ].map((faq, i) => (
+                <div key={i} className="bg-gray-50 rounded-xl p-6 border-[2.5px] border-dark-border shadow-[2px_2px_0_#111827]">
+                  <h3 className="font-heading font-bold text-xl mb-3 text-dark-border">
+                    {faq.q}
+                  </h3>
+                  <p className="font-medium text-gray-700 leading-relaxed">
+                    {faq.a}
+                  </p>
                 </div>
-                <h3 className="font-heading font-black text-2xl mb-2 mt-2">Pro</h3>
-                <div className="text-5xl font-black mb-6">$19<span className="text-lg text-red-200 font-medium">/mo</span></div>
-                <ul className="mb-8 space-y-3 font-medium text-white">
-                  <li className="flex items-center gap-2"><span className="text-yellow-300">✓</span> Unlimited Videos</li>
-                  <li className="flex items-center gap-2"><span className="text-yellow-300">✓</span> AI Idea Generator</li>
-                  <li className="flex items-center gap-2"><span className="text-yellow-300">✓</span> PDF Exports</li>
-                </ul>
-                <Button variant="secondary" className="w-full mt-2">Start Free Trial</Button>
-              </Card>
-
-              <Card bg="lavender" className="p-8">
-                <h3 className="font-heading font-black text-2xl mb-2">Agency</h3>
-                <div className="text-4xl font-black mb-6">$99<span className="text-base text-gray-500 font-medium">/mo</span></div>
-                <ul className="mb-8 space-y-3 font-medium">
-                  <li className="flex items-center gap-2"><span>✓</span> Up to 10 Channels</li>
-                  <li className="flex items-center gap-2"><span>✓</span> API Access</li>
-                  <li className="flex items-center gap-2"><span>✓</span> White-label Reports</li>
-                </ul>
-                <Button variant="dark" className="w-full">Contact Sales</Button>
-              </Card>
+              ))}
             </div>
           </div>
         </section>
@@ -241,7 +222,7 @@ export default function LandingPage() {
         </div>
         <div className="max-w-7xl mx-auto border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400 font-medium">
           <p>© 2024 Axionix AI. All rights reserved.</p>
-          <p className="mt-4 md:mt-0">Made with ❤️ for Creators</p>
+          <p className="mt-4 md:mt-0">Made by Aashish Tejwani</p>
         </div>
       </footer>
     </div>
