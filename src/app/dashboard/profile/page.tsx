@@ -245,7 +245,7 @@ export default function ProfilePage() {
                                 </a>
                             ) : (
                                 <a
-                                    href="/api/youtube/auth"
+                                    href="/api/auth/youtube"
                                     className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-bold rounded-xl shadow-[2px_2px_0_#111827] hover:bg-red-700 transition-colors"
                                 >
                                     <Link2 size={16} />
