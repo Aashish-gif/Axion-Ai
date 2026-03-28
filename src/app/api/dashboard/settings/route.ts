@@ -37,9 +37,12 @@ export async function GET() {
         youtubeChannelTitle: user.youtubeChannelTitle,
         youtubeChannelThumbnail: user.youtubeChannelThumbnail,
         // Notification preferences (add these fields to User model later)
-        emailNotifications: true,
-        weeklyDigest: true,
-        negativeSentimentAlerts: false,
+        emailNotifications: user.emailNotifications ?? true,
+        weeklyDigest: user.weeklyDigest ?? true,
+        negativeSentimentAlerts: user.negativeSentimentAlerts ?? false,
+      },
+      settings: {
+        language: user.language || 'en',
       },
       // Mock usage data - you can track this in DB later
       usage: {
@@ -87,6 +90,9 @@ export async function POST(request: Request) {
     if (body.negativeSentimentAlerts !== undefined) {
       user.set("negativeSentimentAlerts", body.negativeSentimentAlerts);
     }
+    if (body.language !== undefined) {
+      user.set("language", body.language);
+    }
 
     await user.save();
 
@@ -96,6 +102,7 @@ export async function POST(request: Request) {
         emailNotifications: user.emailNotifications,
         weeklyDigest: user.weeklyDigest,
         negativeSentimentAlerts: user.negativeSentimentAlerts,
+        language: user.language || 'en',
       }
     });
 
