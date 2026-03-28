@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import {
     User, Youtube, Mail, Calendar, Activity, Link2, 
     Settings, LogOut, Trash2, Eye, EyeOff, Users, Video, 
     TrendingUp, Shield, ChevronRight, ExternalLink, 
-    CheckCircle, XCircle, AlertCircle
+    CheckCircle, XCircle, AlertCircle, Plus, X
 } from "lucide-react";
 
 interface ProfileData {
@@ -47,7 +48,6 @@ export default function ProfilePage() {
     const [profileData, setProfileData] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [disconnecting, setDisconnecting] = useState(false);
 
     useEffect(() => {
         fetchProfileData();
@@ -66,47 +66,6 @@ export default function ProfilePage() {
             setError(err.message);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleDisconnectChannel = async (platform: string) => {
-        if (platform === "youtube") {
-            if (!confirm("Are you sure you want to disconnect your YouTube channel? This will remove access to your channel data.")) {
-                return;
-            }
-            
-            setDisconnecting(true);
-            try {
-                const res = await fetch("/api/user/profile", { method: "DELETE" });
-                if (!res.ok) {
-                    const data = await res.json();
-                    throw new Error(data.error || "Failed to disconnect channel");
-                }
-                
-                // Update local state
-                if (profileData) {
-                    setProfileData({
-                        ...profileData,
-                        channels: {
-                            ...profileData.channels,
-                            youtube: {
-                                connected: false,
-                                channelTitle: null,
-                                channelData: null,
-                                connectedAt: null
-                            }
-                        },
-                        stats: {
-                            ...profileData.stats,
-                            totalConnectedChannels: profileData.stats.totalConnectedChannels - 1
-                        }
-                    });
-                }
-            } catch (err: any) {
-                setError(err.message);
-            } finally {
-                setDisconnecting(false);
-            }
         }
     };
 
@@ -277,23 +236,13 @@ export default function ProfilePage() {
                         
                         <div className="flex items-center gap-2">
                             {channels.youtube.connected ? (
-                                <button
-                                    onClick={() => handleDisconnectChannel("youtube")}
-                                    disabled={disconnecting}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-bold border-2 border-red-200 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                <a
+                                    href="/dashboard/settings"
+                                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 font-bold border-2 border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                                 >
-                                    {disconnecting ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                                            Disconnecting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2 size={16} />
-                                            Disconnect
-                                        </>
-                                    )}
-                                </button>
+                                    <Settings size={16} />
+                                    Manage
+                                </a>
                             ) : (
                                 <a
                                     href="/api/youtube/auth"
@@ -307,12 +256,11 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* Add more channels here in the future */}
                 {stats.totalConnectedChannels === 0 && (
                     <div className="text-center py-8 text-gray-400">
                         <Link2 size={48} className="mx-auto mb-4 opacity-50" />
                         <p className="font-bold">No channels connected yet</p>
-                        <p className="text-sm mt-2">Connect your YouTube channel to get started</p>
+                        <p className="text-sm mt-2">Go to Settings to connect your YouTube channel</p>
                     </div>
                 )}
             </Card>
